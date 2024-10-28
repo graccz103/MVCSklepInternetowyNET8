@@ -1,0 +1,18 @@
+﻿@model RegisterViewModel
+<p>Hasło musi zawierać:</p>
+<ul>
+    <li>Minimum 6 znaków</li>
+    <li>Przynajmniej jeden znak specjalny</li>
+    <li>Przynajmniej jedną cyfrę</li>
+    <li>Przynajmniej jedną wielką literę</li>
+</ul>
+
+<form asp-action="Register" method="post">
+    <label>Email:</label>
+    <input asp-for="Email" />
+    <label>Password:</label>
+    <input asp-for="Password" type="password" />
+    <label>Confirm Password:</label>
+    <input asp-for="ConfirmPassword" type="password" />
+    <button type="submit">Register</button>
+</form>
