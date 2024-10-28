@@ -1,12 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-
+using MVCSklepInternetowyNET8.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace MVCSklepInternetowyNET8.Controllers
 {
@@ -54,20 +56,54 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
         // POST: Product/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductId,Name,Description,Price,StockQuantity,ImageUrl,CategoryId")] Product product)
+        public async Task<IActionResult> Create(ProductViewModel model)
         {
             if (ModelState.IsValid)
             {
+                var product = new Product
+                {
+                    Name = model.Name,
+                    Description = model.Description,
+                    Price = model.Price,
+                    StockQuantity = model.StockQuantity,
+                    CategoryId = model.CategoryId,
+                    LargeImage = await ConvertToBytes(model.LargeImageFile),
+                    Thumbnail = await GenerateThumbnail(model.LargeImageFile)
+                };
+
                 _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", product.CategoryId);
-            return View(product);
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", model.CategoryId);
+            return View(model);
+        }
+
+        // Konwersja pliku na tablicę bajtów
+        private async Task<byte[]> ConvertToBytes(IFormFile file)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                await file.CopyToAsync(memoryStream);
+                return memoryStream.ToArray();
+            }
+        }
+
+        // Generowanie miniaturki
+        private async Task<byte[]> GenerateThumbnail(IFormFile file)
+        {
+            using var image = Image.Load(file.OpenReadStream()); // Zmieniono na OpenReadStream
+            image.Mutate(x => x.Resize(new ResizeOptions
+            {
+                Size = new Size(100, 100),
+                Mode = ResizeMode.Crop
+            }));
+
+            using var thumbnailStream = new MemoryStream();
+            image.SaveAsJpeg(thumbnailStream);
+            return thumbnailStream.ToArray();
         }
 
         // GET: Product/Edit/5
@@ -88,11 +124,9 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
         // POST: Product/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductId,Name,Description,Price,StockQuantity,ImageUrl,CategoryId")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductId,Name,Description,Price,StockQuantity,CategoryId")] Product product)
         {
             if (id != product.ProductId)
             {
