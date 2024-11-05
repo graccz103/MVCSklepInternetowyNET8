@@ -19,9 +19,9 @@ public class ProductViewModel
     public int CategoryId { get; set; }
 
     // Property to display the current image from the database
-    public byte[] LargeImage { get; set; }
+    public byte[]? LargeImage { get; set; }
 
     // Property for the uploaded file
     [Display(Name = "New Image (optional)")]
-    public IFormFile LargeImageFile { get; set; }
+    public IFormFile? LargeImageFile { get; set; }
 }

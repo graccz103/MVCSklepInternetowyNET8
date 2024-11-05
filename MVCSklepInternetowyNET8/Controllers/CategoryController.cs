@@ -22,14 +22,22 @@ public class CategoryController : Controller
 
     public IActionResult Create()
     {
-        ViewData["ParentCategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name");
+        var categories = _context.Categories.ToList();
+        categories.Insert(0, new Category { CategoryId = 0, Name = "Brak" }); // Dodaj opcję "Brak"
+        ViewData["ParentCategoryId"] = new SelectList(categories, "CategoryId", "Name");
         return View();
     }
+
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Category category)
     {
+        if (category.ParentCategoryId == 0) // Sprawdź, czy wybrano opcję "Brak"
+        {
+            category.ParentCategoryId = null;
+        }
+
         if (ModelState.IsValid)
         {
             _context.Add(category);
@@ -37,17 +45,15 @@ public class CategoryController : Controller
             TempData["SuccessMessage"] = "Kategoria została pomyślnie dodana.";
             return RedirectToAction(nameof(Index));
         }
-        else
-        {
-            // Collect the validation errors and store them in ViewData
-            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-            ViewData["ModelErrors"] = errors;
-        }
 
+        var categories = _context.Categories.ToList();
+        categories.Insert(0, new Category { CategoryId = 0, Name = "Brak" }); // Dodaj opcję "Brak" ponownie
+        ViewData["ParentCategoryId"] = new SelectList(categories, "CategoryId", "Name", category.ParentCategoryId);
         TempData["ErrorMessage"] = "Wystąpił błąd podczas dodawania kategorii.";
-        ViewData["ParentCategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", category.ParentCategoryId);
         return View(category);
     }
+
+
 
 
 
