@@ -17,5 +17,12 @@ public class OnlineShopContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Product>()
             .Property(p => p.Price)
             .HasColumnType("decimal(18,2)");
+
+        // Konfiguracja relacji dla kategorii
+        modelBuilder.Entity<Category>()
+            .HasOne(c => c.ParentCategory)
+            .WithMany(c => c.Subcategories)
+            .HasForeignKey(c => c.ParentCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
