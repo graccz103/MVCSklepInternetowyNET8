@@ -4,6 +4,30 @@
     ViewData["Title"] = "Dodaj Kategorię";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+@if (ViewData["ModelErrors"] != null)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in (List<string>)ViewData["ModelErrors"])
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
 <h1>Dodaj Kategorię</h1>
 
 <form asp-action="Create" method="post">

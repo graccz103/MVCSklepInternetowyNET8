@@ -34,11 +34,23 @@ public class CategoryController : Controller
         {
             _context.Add(category);
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Kategoria została pomyślnie dodana.";
             return RedirectToAction(nameof(Index));
         }
+        else
+        {
+            // Collect the validation errors and store them in ViewData
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            ViewData["ModelErrors"] = errors;
+        }
+
+        TempData["ErrorMessage"] = "Wystąpił błąd podczas dodawania kategorii.";
         ViewData["ParentCategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", category.ParentCategoryId);
         return View(category);
     }
+
+
+
 
     public async Task<IActionResult> Edit(int? id)
     {
