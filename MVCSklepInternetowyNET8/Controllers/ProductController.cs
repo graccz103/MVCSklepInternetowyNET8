@@ -22,6 +22,12 @@ namespace MVCSklepInternetowyNET8.Controllers
             _context = context;
         }
 
+        // GET: Product/ProductList (dla zywklych uzytkownikow na zakupy)
+        public async Task<IActionResult> ProductList()
+        {
+            var products = await _context.Products.Include(p => p.Category).ToListAsync();
+            return View(products);
+        }
         // GET: Product
         public async Task<IActionResult> Index()
         {
