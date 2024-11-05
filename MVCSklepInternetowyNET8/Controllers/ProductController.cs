@@ -57,6 +57,7 @@ namespace MVCSklepInternetowyNET8.Controllers
 
 
 
+    
         // POST: Product/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -77,11 +78,20 @@ namespace MVCSklepInternetowyNET8.Controllers
 
                 _context.Add(product);
                 await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Produkt został pomyślnie dodany.";
                 return RedirectToAction(nameof(Index));
             }
+            else
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                ViewData["ModelErrors"] = errors;
+            }
+
+            TempData["ErrorMessage"] = "Wystąpił błąd podczas dodawania produktu.";
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", model.CategoryId);
             return View(model);
         }
+
 
         // Konwersja pliku na tablicę bajtów
         private async Task<byte[]> ConvertToBytes(IFormFile file)
