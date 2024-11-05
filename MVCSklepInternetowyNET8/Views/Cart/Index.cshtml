@@ -1,0 +1,39 @@
+﻿@model Cart
+
+<h1>Twój Koszyk</h1>
+
+@if (!Model.Items.Any())
+{
+    <p>Twój koszyk jest pusty.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produkt</th>
+                <th>Cena</th>
+                <th>Ilość</th>
+                <th>Razem</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.ProductName</td>
+                    <td>@item.Price.ToString("C")</td>
+                    <td>@item.Quantity</td>
+                    <td>@(item.Price * item.Quantity).ToString("C")</td>
+                    <td>
+                        <a href="@Url.Action("RemoveFromCart", "Cart", new { productId = item.ProductId })" class="btn btn-danger">Usuń</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <h3>Łączna cena: @Model.GetTotalPrice().ToString("C")</h3>
+    <a href="@Url.Action("ClearCart", "Cart")" class="btn btn-warning">Wyczyść koszyk</a>
+    <a href="@Url.Action("Checkout", "Order")" class="btn btn-primary">Przejdź do zamówienia</a>
+}

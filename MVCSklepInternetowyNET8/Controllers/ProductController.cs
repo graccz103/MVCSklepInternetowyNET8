@@ -12,7 +12,6 @@ using SixLabors.ImageSharp.Processing;
 
 namespace MVCSklepInternetowyNET8.Controllers
 {
-    [Authorize(Roles = "Admin")]
     public class ProductController : Controller
     {
         private readonly OnlineShopContext _context;
@@ -23,12 +22,14 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
         // GET: Product/ProductList (dla zywklych uzytkownikow na zakupy)
+        [AllowAnonymous]
         public async Task<IActionResult> ProductList()
         {
             var products = await _context.Products.Include(p => p.Category).ToListAsync();
             return View(products);
         }
         // GET: Product
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var onlineShopContext = _context.Products.Include(p => p.Category);
@@ -36,6 +37,7 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
         // GET: Product/Details/5
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -55,6 +57,7 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
         // GET: Product/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewBag.CategoryList = new SelectList(_context.Categories, "CategoryId", "Name");
@@ -67,6 +70,7 @@ namespace MVCSklepInternetowyNET8.Controllers
         // POST: Product/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(ProductViewModel model)
         {
             if (ModelState.IsValid)
@@ -125,6 +129,7 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
         // GET: Product/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -144,6 +149,7 @@ namespace MVCSklepInternetowyNET8.Controllers
         // POST: Product/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("ProductId,Name,Description,Price,StockQuantity,CategoryId")] Product product)
         {
             if (id != product.ProductId)
@@ -176,6 +182,7 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
         // GET: Product/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -197,6 +204,7 @@ namespace MVCSklepInternetowyNET8.Controllers
         // POST: Product/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var product = await _context.Products.FindAsync(id);
