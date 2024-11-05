@@ -1,0 +1,26 @@
+﻿@model Category
+
+@{
+    ViewData["Title"] = "Usuń Kategorię";
+}
+
+<h1>Usuń Kategorię</h1>
+
+<h3>Czy na pewno chcesz usunąć tę kategorię?</h3>
+<div>
+    <h4>Kategoria</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Nazwa</dt>
+        <dd class="col-sm-10">@Model.Name</dd>
+
+        <dt class="col-sm-2">Nadrzędna kategoria</dt>
+        <dd class="col-sm-10">@Model.ParentCategory?.Name</dd>
+    </dl>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="CategoryId" />
+    <input type="submit" value="Usuń" class="btn btn-danger" /> |
+    <a asp-action="Index">Powrót do listy</a>
+</form>
