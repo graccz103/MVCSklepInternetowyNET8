@@ -29,6 +29,9 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Dodanie kontrolerów i widoków
 builder.Services.AddControllersWithViews();
 
+// Dodanie obs³ugi sesji
+builder.Services.AddSession();
+
 var app = builder.Build();
 
 // Ustawienie obs³ugi lokalizacji
@@ -58,6 +61,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Dodanie obs³ugi sesji
+app.UseSession();
 
 // Dodanie uwierzytelniania i autoryzacji
 app.UseAuthentication();
