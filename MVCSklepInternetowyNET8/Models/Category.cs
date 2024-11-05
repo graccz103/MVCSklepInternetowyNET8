@@ -10,9 +10,12 @@ public class Category
     [StringLength(100)]
     public string Name { get; set; }
 
+    // Ustawienie ParentCategory jako opcjonalnej
     public int? ParentCategoryId { get; set; }
-    public Category ParentCategory { get; set; }
-    public ICollection<Category> Subcategories { get; set; } = new List<Category>();
+    public Category? ParentCategory { get; set; } // Ustawienie jako nullable
 
-    public ICollection<Product> Products { get; set; }
+    // Ustawienie Products jako opcjonalnej
+    public ICollection<Category> Subcategories { get; set; } = new List<Category>();
+    public ICollection<Product>? Products { get; set; } // Ustawienie jako nullable
 }
+

@@ -51,9 +51,11 @@ namespace MVCSklepInternetowyNET8.Controllers
         // GET: Product/Create
         public IActionResult Create()
         {
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name");
+            ViewBag.CategoryList = new SelectList(_context.Categories, "CategoryId", "Name");
             return View();
         }
+
+
 
         // POST: Product/Create
         [HttpPost]
