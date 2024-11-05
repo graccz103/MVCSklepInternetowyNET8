@@ -9,18 +9,17 @@
 <div class="row">
     @foreach (var product in Model)
     {
-        <div class="col-md-4 mb-3">
-            <div class="card">
-                @if (product.Thumbnail != null)
-                {
-                    <img class="card-img-top" src="data:image/jpeg;base64,@Convert.ToBase64String(product.Thumbnail)" alt="@product.Name" />
-                }
-                <div class="card-body">
-                    <h5 class="card-title">@product.Name</h5>
-                    <p class="card-text">@product.Description</p>
-                    <p class="card-text"><strong>Cena: </strong>@product.Price.ToString("C")</p>
-                    <a href="@Url.Action("Details", "Product", new { id = product.ProductId })" class="btn btn-primary">Szczegóły</a>
-                </div>
+        <div class="card">
+            @if (product.Thumbnail != null)
+            {
+                <img class="card-img-top" src="data:image/jpeg;base64,@Convert.ToBase64String(product.Thumbnail)" alt="@product.Name" />
+            }
+            <div class="card-body">
+                <h5 class="card-title">@product.Name</h5>
+                <p class="card-text">@product.Description</p>
+                <p class="card-text"><strong>Cena: </strong>@product.Price.ToString("C")</p>
+                <a href="@Url.Action("Details", "Product", new { id = product.ProductId })" class="btn btn-primary">Szczegóły</a>
+                <a href="@Url.Action("AddToCart", "Cart", new { productId = product.ProductId })" class="btn btn-success">Dodaj do koszyka</a>
             </div>
         </div>
     }
