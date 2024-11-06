@@ -1,47 +1,39 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-public class Cart
+﻿public class Cart
 {
-    private List<CartItem> items = new List<CartItem>();
+    public List<CartItem> Items { get; set; } = new List<CartItem>(); // Zmiana na List<CartItem>
 
-    public IEnumerable<CartItem> Items => items;
+    public decimal GetTotalPrice()
+    {
+        return Items.Sum(item => item.Price * item.Quantity);
+    }
 
     public void AddToCart(Product product, int quantity)
     {
-        var item = items.FirstOrDefault(p => p.ProductId == product.ProductId);
-        if (item == null)
+        var cartItem = Items.FirstOrDefault(i => i.ProductId == product.ProductId);
+        if (cartItem == null)
         {
-            items.Add(new CartItem
+            Items.Add(new CartItem
             {
                 ProductId = product.ProductId,
                 ProductName = product.Name,
                 Price = product.Price,
-                Quantity = quantity
+                Quantity = quantity,
+                Thumbnail = product.Thumbnail
             });
         }
         else
         {
-            item.Quantity += quantity;
+            cartItem.Quantity += quantity;
         }
     }
 
     public void RemoveFromCart(int productId)
     {
-        var item = items.FirstOrDefault(p => p.ProductId == productId);
-        if (item != null)
+        var cartItem = Items.FirstOrDefault(i => i.ProductId == productId);
+        if (cartItem != null)
         {
-            items.Remove(item);
+            Items.Remove(cartItem);
         }
     }
-
-    public decimal GetTotalPrice()
-    {
-        return items.Sum(i => i.Price * i.Quantity);
-    }
-
-    public void ClearCart()
-    {
-        items.Clear();
-    }
 }
+

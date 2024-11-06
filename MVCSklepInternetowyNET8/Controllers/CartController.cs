@@ -38,12 +38,28 @@ public class CartController : Controller
         }
 
         var cart = GetCart();
-        cart.AddToCart(product, 1); // Dodaj jeden produkt
+        var cartItem = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+        if (cartItem == null)
+        {
+            cart.Items.Add(new CartItem
+            {
+                ProductId = product.ProductId,
+                ProductName = product.Name,
+                Price = product.Price,
+                Quantity = 1,
+                Thumbnail = product.Thumbnail
+            });
+        }
+        else
+        {
+            cartItem.Quantity++;
+        }
         SaveCart(cart);
 
         TempData["SuccessMessage"] = "Produkt został dodany do koszyka.";
-        return RedirectToAction("Index", "Cart"); // Zmiana przekierowania na widok koszyka
+        return RedirectToAction("Index", "Cart");
     }
+
 
 
     // POST: Cart/Remove
