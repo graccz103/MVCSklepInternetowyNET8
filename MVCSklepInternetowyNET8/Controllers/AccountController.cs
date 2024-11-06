@@ -7,11 +7,13 @@ public class AccountController : Controller
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly OnlineShopContext _context;
 
-    public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+    public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, OnlineShopContext context)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _context = context;
     }
 
     // Akcja rejestracji
@@ -27,27 +29,19 @@ public class AccountController : Controller
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
-                Console.WriteLine("User registered successfully.");
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Home");
             }
             else
             {
-                Console.WriteLine("User registration failed.");
                 foreach (var error in result.Errors)
                 {
-                    Console.WriteLine($"Error: {error.Description}");
                     ModelState.AddModelError("", error.Description);
                 }
             }
         }
-        else
-        {
-            Console.WriteLine("Model state is invalid.");
-        }
         return View(model);
     }
-
 
     // Akcja logowania
     [HttpGet]
@@ -65,16 +59,6 @@ public class AccountController : Controller
         }
         return View(model);
     }
-    public async Task<IActionResult> ListUsers()
-    {
-        var users = await _userManager.Users.ToListAsync();
-        foreach (var user in users)
-        {
-            Console.WriteLine($"User: {user.Email}");
-        }
-        return View(users);
-    }
-
 
     // Akcja wylogowania
     [HttpPost]
@@ -82,5 +66,47 @@ public class AccountController : Controller
     {
         await _signInManager.SignOutAsync();
         return RedirectToAction("Index", "Home");
+    }
+
+    // GET: EditCustomerDetails
+    [HttpGet]
+    public async Task<IActionResult> EditCustomerDetails()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        if (user.Customer == null)
+        {
+            user.Customer = new Customer();
+        }
+
+        return View(user.Customer);
+    }
+
+    // POST: EditCustomerDetails
+    [HttpPost]
+    public async Task<IActionResult> EditCustomerDetails(Customer model)
+    {
+        if (ModelState.IsValid)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            user.Customer = model;
+
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Your details have been updated.";
+            return RedirectToAction("Index", "Home");
+        }
+
+        return View(model);
     }
 }
