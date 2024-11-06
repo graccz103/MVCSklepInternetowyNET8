@@ -32,4 +32,9 @@ public class Customer
     public string PostalCode { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+
+    // Relacja do ApplicationUser
+    public string UserId { get; set; }
+    public ApplicationUser User { get; set; }
 }
