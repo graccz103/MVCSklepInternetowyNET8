@@ -142,17 +142,31 @@ namespace MVCSklepInternetowyNET8.Controllers
             {
                 return NotFound();
             }
+
+            // Konwersja Product na ProductViewModel
+            var productViewModel = new ProductViewModel
+            {
+                ProductId = product.ProductId,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                StockQuantity = product.StockQuantity,
+                CategoryId = product.CategoryId,
+                LargeImage = product.LargeImage,
+                Thumbnail = product.Thumbnail
+            };
+
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", product.CategoryId);
-            return View(product);
+            return View(productViewModel);
         }
 
         // POST: Product/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductId,Name,Description,Price,StockQuantity,CategoryId")] Product product)
+        public async Task<IActionResult> Edit(int id, ProductViewModel model)
         {
-            if (id != product.ProductId)
+            if (id != model.ProductId)
             {
                 return NotFound();
             }
@@ -161,12 +175,34 @@ namespace MVCSklepInternetowyNET8.Controllers
             {
                 try
                 {
+                    // Znajdź istniejący produkt w bazie danych
+                    var product = await _context.Products.FindAsync(id);
+
+                    if (product == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Aktualizacja danych produktu
+                    product.Name = model.Name;
+                    product.Description = model.Description;
+                    product.Price = model.Price;
+                    product.StockQuantity = model.StockQuantity;
+                    product.CategoryId = model.CategoryId;
+
+                    // Jeśli użytkownik załadował nowy obraz, zaktualizuj LargeImage i Thumbnail
+                    if (model.LargeImageFile != null)
+                    {
+                        product.LargeImage = await ConvertToBytes(model.LargeImageFile);
+                        product.Thumbnail = await GenerateThumbnail(model.LargeImageFile);
+                    }
+
                     _context.Update(product);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductExists(product.ProductId))
+                    if (!ProductExists(model.ProductId))
                     {
                         return NotFound();
                     }
@@ -177,9 +213,11 @@ namespace MVCSklepInternetowyNET8.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", product.CategoryId);
-            return View(product);
+
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", model.CategoryId);
+            return View(model);
         }
+
 
         // GET: Product/Delete/5
         [Authorize(Roles = "Admin")]
