@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using MVCSklepInternetowyNET8.Models;
+using Microsoft.AspNetCore.Authorization;
 
 public class AccountController : Controller
 {
@@ -68,45 +70,110 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-    // GET: EditCustomerDetails
+    // GET: Account/CustomerDetails
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> CustomerDetails()
+    {
+        if (!User.Identity.IsAuthenticated)
+        {
+            TempData["ErrorMessage"] = "Sesja wygasła. Proszę się zalogować ponownie.";
+            return RedirectToAction("Login");
+        }
+
+        // Pobierz użytkownika wraz z danymi klienta
+        var user = await _context.Users
+                                 .Include(u => u.Customer)
+                                 .FirstOrDefaultAsync(u => u.Id == _userManager.GetUserId(User));
+
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Nie jesteś zalogowany.";
+            return RedirectToAction("Login");
+        }
+
+        if (user.Customer == null)
+        {
+            TempData["ErrorMessage"] = "Nie znaleziono danych klienta.";
+            return RedirectToAction("EditCustomerDetails");
+        }
+
+        return View(user.Customer);
+    }
+
+
+
+
+    // GET: Account/EditCustomerDetails
     [HttpGet]
     public async Task<IActionResult> EditCustomerDetails()
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
+            TempData["ErrorMessage"] = "Użytkownik nie jest zalogowany.";
             return RedirectToAction("Login");
         }
 
-        if (user.Customer == null)
-        {
-            user.Customer = new Customer();
-        }
-
-        return View(user.Customer);
+        var customerDetails = user.Customer ?? new Customer();
+        return View(customerDetails);
     }
 
-    // POST: EditCustomerDetails
+    // POST: Account/EditCustomerDetails
     [HttpPost]
-    public async Task<IActionResult> EditCustomerDetails(Customer model)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditCustomerDetails(Customer customer)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return RedirectToAction("Login");
-            }
+            // Zbierz błędy walidacji i przekaż do widoku
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            ViewData["ModelErrors"] = errors;
 
-            user.Customer = model;
-
-            _context.Update(user);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Your details have been updated.";
-            return RedirectToAction("Index", "Home");
+            TempData["ErrorMessage"] = "Wystąpiły błędy w formularzu. Proszę sprawdzić dane.";
+            return View(customer);
         }
 
-        return View(model);
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Użytkownik nie jest zalogowany.";
+            return RedirectToAction("Login");
+        }
+
+        // Aktualizacja danych klienta
+        if (user.Customer == null)
+        {
+            user.Customer = customer;
+            user.Customer.UserId = user.Id; // Przypisanie UserId
+            _context.Customers.Add(customer);
+        }
+        else
+        {
+            user.Customer.FirstName = customer.FirstName;
+            user.Customer.LastName = customer.LastName;
+            user.Customer.Email = customer.Email;
+            user.Customer.PhoneNumber = customer.PhoneNumber;
+            user.Customer.Address = customer.Address;
+            user.Customer.City = customer.City;
+            user.Customer.PostalCode = customer.PostalCode;
+            user.Customer.UserId = user.Id; // Przypisanie UserId
+            _context.Customers.Update(user.Customer);
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Dane zostały pomyślnie zaktualizowane.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Wystąpił błąd podczas zapisu: {ex.Message}";
+        }
+
+        return RedirectToAction("EditCustomerDetails");
     }
 }

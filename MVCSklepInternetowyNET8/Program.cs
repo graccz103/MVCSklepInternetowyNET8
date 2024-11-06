@@ -32,6 +32,10 @@ builder.Services.AddControllersWithViews();
 // Dodanie obs³ugi sesji
 builder.Services.AddSession();
 
+// Dodanie zale¿noœci cartservice powi¹zanej z // Services/CartService.cs
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddScoped<CartService>();
+
 var app = builder.Build();
 
 // Ustawienie obs³ugi lokalizacji

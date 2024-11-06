@@ -1,0 +1,41 @@
+﻿@model Cart
+
+<h2>Podsumowanie zamówienia</h2>
+
+@if (Model.Items.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produkt</th>
+                <th>Ilość</th>
+                <th>Cena jednostkowa</th>
+                <th>Cena razem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.ProductName</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.Price.ToString("C")</td>
+                    <td>@(item.Price * item.Quantity).ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Łączna cena: @Model.GetTotalPrice().ToString("C")</h3>
+
+    <form asp-action="CheckoutPost" method="post">
+        <button type="submit" class="btn btn-primary">Złóż zamówienie</button>
+    </form>
+
+
+
+}
+else
+{
+    <p>Twój koszyk jest pusty.</p>
+}

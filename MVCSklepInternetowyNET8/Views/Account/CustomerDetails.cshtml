@@ -1,0 +1,32 @@
+﻿@model Customer
+@{
+    ViewData["Title"] = "Dane Klienta";
+}
+
+<h2>Dane Klienta</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title">Szczegóły Klienta</h4>
+
+        <p><strong>Imię:</strong> @Model.FirstName</p>
+        <p><strong>Nazwisko:</strong> @Model.LastName</p>
+        <p><strong>Email:</strong> @Model.Email</p>
+        <p><strong>Numer Telefonu:</strong> @Model.PhoneNumber</p>
+        <p><strong>Adres:</strong> @Model.Address</p>
+        <p><strong>Miasto:</strong> @Model.City</p>
+        <p><strong>Kod Pocztowy:</strong> @Model.PostalCode</p>
+    </div>
+</div>
+
+<p>
+    <a href="@Url.Action("EditCustomerDetails", "Account")" class="btn btn-primary">Edytuj Dane</a>
+    <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Powrót do strony głównej</a>
+</p>
