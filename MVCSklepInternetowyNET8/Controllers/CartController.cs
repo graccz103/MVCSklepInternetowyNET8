@@ -1,14 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MVCSklepInternetowyNET8.Models;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 public class CartController : Controller
 {
     private readonly OnlineShopContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public CartController(OnlineShopContext context)
+    public CartController(OnlineShopContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     private Cart GetCart()
@@ -28,6 +33,24 @@ public class CartController : Controller
         var cart = GetCart();
         return View(cart);
     }
+
+    // GET: Cart/OrderConfirmation
+    public async Task<IActionResult> OrderConfirmation(int orderId)
+    {
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+        if (order == null)
+        {
+            return NotFound();
+        }
+
+        return View(order);
+    }
+
+
     // POST: Cart/Add
     public IActionResult AddToCart(int productId)
     {
@@ -60,8 +83,6 @@ public class CartController : Controller
         return RedirectToAction("Index", "Cart");
     }
 
-
-
     // POST: Cart/Remove
     public IActionResult RemoveFromCart(int productId)
     {
@@ -82,4 +103,56 @@ public class CartController : Controller
         TempData["SuccessMessage"] = "Koszyk został wyczyszczony.";
         return RedirectToAction("Index");
     }
+
+    // POST: Cart/Checkout
+    [HttpPost]
+    public async Task<IActionResult> Checkout()
+    {
+        // Logowanie w celu weryfikacji
+        Console.WriteLine("Rozpoczęto proces Checkout");
+
+        // Pobranie użytkownika bez sprawdzania danych klienta
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            Console.WriteLine("Użytkownik niezalogowany - przekierowanie do logowania.");
+            return RedirectToAction("Login", "Account");
+        }
+
+        Console.WriteLine($"Użytkownik: {user.Email}");
+
+        // Pobranie koszyka i sprawdzenie, czy są w nim produkty
+        var cart = GetCart();
+        if (!cart.Items.Any())
+        {
+            TempData["ErrorMessage"] = "Twój koszyk jest pusty.";
+            return RedirectToAction("Index");
+        }
+
+        Console.WriteLine("Koszyk zawiera produkty, przechodzimy do tworzenia zamówienia");
+
+        // Tworzenie zamówienia
+        var order = new Order
+        {
+            UserId = user.Id,
+            TotalPrice = cart.GetTotalPrice(),
+            OrderItems = cart.Items.Select(i => new OrderItem
+            {
+                ProductId = i.ProductId,
+                Quantity = i.Quantity,
+                Price = i.Price
+            }).ToList()
+        };
+
+        _context.Orders.Add(order);
+        await _context.SaveChangesAsync();
+
+        Console.WriteLine("Zamówienie zostało pomyślnie złożone");
+
+        ClearCart(); // Wyczyść koszyk po złożeniu zamówienia
+        TempData["SuccessMessage"] = "Twoje zamówienie zostało złożone!";
+        return RedirectToAction("OrderConfirmation", new { orderId = order.OrderId });
+    }
+
+
 }

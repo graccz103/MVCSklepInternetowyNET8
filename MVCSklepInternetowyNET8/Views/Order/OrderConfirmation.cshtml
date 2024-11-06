@@ -1,0 +1,33 @@
+﻿@model Order
+
+<h2>Potwierdzenie Zamówienia</h2>
+
+<p>Dziękujemy za złożenie zamówienia! Oto jego szczegóły:</p>
+
+<h4>Zamówienie #@Model.OrderId</h4>
+<p>Data: @Model.OrderDate</p>
+<p>Łączna cena: @Model.TotalPrice.ToString("C")</p>
+
+<h3>Produkty</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nazwa produktu</th>
+            <th>Ilość</th>
+            <th>Cena jednostkowa</th>
+            <th>Cena razem</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.OrderItems)
+        {
+            <tr>
+                <td>@item.Product.Name</td>
+                <td>@item.Quantity</td>
+                <td>@item.Price.ToString("C")</td>
+                <td>@(item.Price * item.Quantity).ToString("C")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p><a href="@Url.Action("Index", "Home")" class="btn btn-primary">Powrót do strony głównej</a></p>

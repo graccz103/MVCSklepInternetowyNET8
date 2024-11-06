@@ -2,16 +2,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using MVCSklepInternetowyNET8.Models;
+using Microsoft.AspNetCore.Authorization;
 
 public class AccountController : Controller
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly OnlineShopContext _context;
 
-    public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+    public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, OnlineShopContext context)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _context = context;
     }
 
     // Akcja rejestracji
@@ -27,27 +31,19 @@ public class AccountController : Controller
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
-                Console.WriteLine("User registered successfully.");
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Home");
             }
             else
             {
-                Console.WriteLine("User registration failed.");
                 foreach (var error in result.Errors)
                 {
-                    Console.WriteLine($"Error: {error.Description}");
                     ModelState.AddModelError("", error.Description);
                 }
             }
         }
-        else
-        {
-            Console.WriteLine("Model state is invalid.");
-        }
         return View(model);
     }
-
 
     // Akcja logowania
     [HttpGet]
@@ -65,16 +61,6 @@ public class AccountController : Controller
         }
         return View(model);
     }
-    public async Task<IActionResult> ListUsers()
-    {
-        var users = await _userManager.Users.ToListAsync();
-        foreach (var user in users)
-        {
-            Console.WriteLine($"User: {user.Email}");
-        }
-        return View(users);
-    }
-
 
     // Akcja wylogowania
     [HttpPost]
@@ -82,5 +68,112 @@ public class AccountController : Controller
     {
         await _signInManager.SignOutAsync();
         return RedirectToAction("Index", "Home");
+    }
+
+    // GET: Account/CustomerDetails
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> CustomerDetails()
+    {
+        if (!User.Identity.IsAuthenticated)
+        {
+            TempData["ErrorMessage"] = "Sesja wygasła. Proszę się zalogować ponownie.";
+            return RedirectToAction("Login");
+        }
+
+        // Pobierz użytkownika wraz z danymi klienta
+        var user = await _context.Users
+                                 .Include(u => u.Customer)
+                                 .FirstOrDefaultAsync(u => u.Id == _userManager.GetUserId(User));
+
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Nie jesteś zalogowany.";
+            return RedirectToAction("Login");
+        }
+
+        if (user.Customer == null)
+        {
+            TempData["ErrorMessage"] = "Nie znaleziono danych klienta.";
+            return RedirectToAction("EditCustomerDetails");
+        }
+
+        return View(user.Customer);
+    }
+
+
+
+
+    // GET: Account/EditCustomerDetails
+    [HttpGet]
+    public async Task<IActionResult> EditCustomerDetails()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Użytkownik nie jest zalogowany.";
+            return RedirectToAction("Login");
+        }
+
+        var customerDetails = user.Customer ?? new Customer();
+        return View(customerDetails);
+    }
+
+    // POST: Account/EditCustomerDetails
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditCustomerDetails(Customer customer)
+    {
+        if (!ModelState.IsValid)
+        {
+            // Zbierz błędy walidacji i przekaż do widoku
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            ViewData["ModelErrors"] = errors;
+
+            TempData["ErrorMessage"] = "Wystąpiły błędy w formularzu. Proszę sprawdzić dane.";
+            return View(customer);
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Użytkownik nie jest zalogowany.";
+            return RedirectToAction("Login");
+        }
+
+        // Aktualizacja danych klienta
+        if (user.Customer == null)
+        {
+            user.Customer = customer;
+            user.Customer.UserId = user.Id; // Przypisanie UserId
+            _context.Customers.Add(customer);
+        }
+        else
+        {
+            user.Customer.FirstName = customer.FirstName;
+            user.Customer.LastName = customer.LastName;
+            user.Customer.Email = customer.Email;
+            user.Customer.PhoneNumber = customer.PhoneNumber;
+            user.Customer.Address = customer.Address;
+            user.Customer.City = customer.City;
+            user.Customer.PostalCode = customer.PostalCode;
+            user.Customer.UserId = user.Id; // Przypisanie UserId
+            _context.Customers.Update(user.Customer);
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Dane zostały pomyślnie zaktualizowane.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Wystąpił błąd podczas zapisu: {ex.Message}";
+        }
+
+        return RedirectToAction("EditCustomerDetails");
     }
 }
