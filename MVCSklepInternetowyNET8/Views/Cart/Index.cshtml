@@ -22,10 +22,13 @@ else
             @foreach (var item in Model.Items)
             {
                 <tr>
-                    <td>@item.ProductName</td>
-                    <td>@item.Price.ToString("C")</td>
+                    <td>
+                        <img src="data:image/jpeg;base64,@Convert.ToBase64String(item.Thumbnail)" alt="@item.ProductName" style="width: 50px; height: 50px; object-fit: cover;" />
+                        @item.ProductName
+                    </td>
+                    <td>@($"{item.Price:C}")</td>
                     <td>@item.Quantity</td>
-                    <td>@(item.Price * item.Quantity).ToString("C")</td>
+                    <td>@($"{(item.Price * item.Quantity):C}")</td>
                     <td>
                         <a href="@Url.Action("RemoveFromCart", "Cart", new { productId = item.ProductId })" class="btn btn-danger">Usuń</a>
                     </td>
@@ -33,7 +36,7 @@ else
             }
         </tbody>
     </table>
-    <h3>Łączna cena: @Model.GetTotalPrice().ToString("C")</h3>
+    <h3>Łączna cena: @($"{Model.GetTotalPrice():C}")</h3>
     <a href="@Url.Action("ClearCart", "Cart")" class="btn btn-warning">Wyczyść koszyk</a>
     <a href="@Url.Action("Checkout", "Order")" class="btn btn-primary">Przejdź do zamówienia</a>
 }

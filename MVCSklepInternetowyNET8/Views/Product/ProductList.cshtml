@@ -9,10 +9,10 @@
 <div class="row">
     @foreach (var product in Model)
     {
-        <div class="card">
+        <div class="card" style="width: 18rem; margin: 1rem;">
             @if (product.Thumbnail != null)
             {
-                <img class="card-img-top" src="data:image/jpeg;base64,@Convert.ToBase64String(product.Thumbnail)" alt="@product.Name" />
+                <img class="card-img-top" src="data:image/jpeg;base64,@Convert.ToBase64String(product.Thumbnail)" alt="@product.Name" style="width: 100px; height: 100px; object-fit: cover;" />
             }
             <div class="card-body">
                 <h5 class="card-title">@product.Name</h5>
