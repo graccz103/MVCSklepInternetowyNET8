@@ -52,16 +52,19 @@ public class CartController : Controller
 
 
     // POST: Cart/Add
-    public IActionResult AddToCart(int productId)
+    [HttpPost]
+    public IActionResult AddToCart(int productId, int quantity)
     {
         var product = _context.Products.FirstOrDefault(p => p.ProductId == productId);
-        if (product == null)
+        if (product == null || quantity < 1 || quantity > product.StockQuantity)
         {
-            return NotFound();
+            TempData["ErrorMessage"] = "Nieprawidłowa ilość lub produkt niedostępny.";
+            return RedirectToAction("ProductList", "Product");
         }
 
         var cart = GetCart();
         var cartItem = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+
         if (cartItem == null)
         {
             cart.Items.Add(new CartItem
@@ -69,19 +72,22 @@ public class CartController : Controller
                 ProductId = product.ProductId,
                 ProductName = product.Name,
                 Price = product.Price,
-                Quantity = 1,
-                Thumbnail = product.Thumbnail
+                Quantity = quantity,
+                Thumbnail = product.Thumbnail,
+                StockQuantity = product.StockQuantity // Ustawienie StockQuantity
             });
         }
         else
         {
-            cartItem.Quantity++;
+            cartItem.Quantity += quantity;
         }
-        SaveCart(cart);
 
+        SaveCart(cart);
         TempData["SuccessMessage"] = "Produkt został dodany do koszyka.";
         return RedirectToAction("Index", "Cart");
     }
+
+
 
     // POST: Cart/Remove
     public IActionResult RemoveFromCart(int productId)
@@ -154,5 +160,24 @@ public class CartController : Controller
         return RedirectToAction("OrderConfirmation", new { orderId = order.OrderId });
     }
 
+    [HttpPost]
+    public IActionResult UpdateQuantity(int productId, int quantity)
+    {
+        var cart = GetCart();
+        var cartItem = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+
+        if (cartItem != null && quantity > 0)
+        {
+            cartItem.Quantity = quantity;
+            SaveCart(cart);
+            TempData["SuccessMessage"] = "Ilość produktu została zaktualizowana.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Nieprawidłowa ilość.";
+        }
+
+        return RedirectToAction("Index");
+    }
 
 }

@@ -1,9 +1,5 @@
 ﻿@model IEnumerable<Product>
 
-@{
-    ViewData["Title"] = "Lista Produktów";
-}
-
 <h1>Lista Produktów</h1>
 
 <div class="row">
@@ -18,8 +14,17 @@
                 <h5 class="card-title">@product.Name</h5>
                 <p class="card-text">@product.Description</p>
                 <p class="card-text"><strong>Cena: </strong>@product.Price.ToString("C")</p>
-                <a href="@Url.Action("Details", "Product", new { id = product.ProductId })" class="btn btn-primary">Szczegóły</a>
-                <a href="@Url.Action("AddToCart", "Cart", new { productId = product.ProductId })" class="btn btn-success">Dodaj do koszyka</a>
+                <p class="card-text"><strong>Dostępne: </strong>@product.StockQuantity</p>
+
+                <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                    <input type="hidden" name="productId" value="@product.ProductId" />
+                    <div class="form-group">
+                        <label for="quantity">Ilość:</label>
+                        <input type="number" name="quantity" class="form-control" min="1" max="@product.StockQuantity" value="1" />
+                    </div>
+                    <button type="submit" class="btn btn-success">Dodaj do koszyka</button>
+                </form>
+
             </div>
         </div>
     }

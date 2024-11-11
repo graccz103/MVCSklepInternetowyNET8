@@ -61,6 +61,7 @@ public class OrderController : Controller
                                  .Include(u => u.Customer)
                                  .FirstOrDefaultAsync(u => u.Id == _userManager.GetUserId(User));
 
+        // Sprawdzenie, czy użytkownik jest zalogowany i posiada uzupełnione wymagane szczegóły
         if (user == null || user.Customer == null ||
             string.IsNullOrWhiteSpace(user.Customer.FirstName) ||
             string.IsNullOrWhiteSpace(user.Customer.LastName) ||
@@ -80,6 +81,7 @@ public class OrderController : Controller
             return RedirectToAction("Index", "Cart");
         }
 
+        // Tworzenie zamówienia
         var order = new Order
         {
             UserId = user.Id,
@@ -93,14 +95,24 @@ public class OrderController : Controller
         };
 
         _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
 
-        Console.WriteLine("Zamówienie pomyślnie złożone, przekierowanie do OrderConfirmation");
+        // Zmniejszanie `StockQuantity` dla każdego produktu dopiero po złożeniu zamówienia
+        foreach (var item in cart.Items)
+        {
+            var product = await _context.Products.FindAsync(item.ProductId);
+            if (product != null)
+            {
+                product.StockQuantity -= item.Quantity;
+            }
+        }
+
+        await _context.SaveChangesAsync();
 
         _cartService.ClearCart();
         TempData["SuccessMessage"] = "Twoje zamówienie zostało złożone!";
         return RedirectToAction("OrderConfirmation", new { orderId = order.OrderId });
     }
+
 
 
 

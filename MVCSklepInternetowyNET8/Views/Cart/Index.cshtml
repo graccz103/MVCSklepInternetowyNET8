@@ -27,7 +27,13 @@ else
                         @item.ProductName
                     </td>
                     <td>@($"{item.Price:C}")</td>
-                    <td>@item.Quantity</td>
+                    <td>
+                        <form asp-action="UpdateQuantity" method="post">
+                            <input type="hidden" name="productId" value="@item.ProductId" />
+                            <input type="number" name="quantity" class="form-control" min="1" max="@item.StockQuantity" value="@item.Quantity" />
+                            <button type="submit" class="btn btn-primary">Aktualizuj</button>
+                        </form>
+                    </td>
                     <td>@($"{(item.Price * item.Quantity):C}")</td>
                     <td>
                         <a href="@Url.Action("RemoveFromCart", "Cart", new { productId = item.ProductId })" class="btn btn-danger">Usuń</a>
