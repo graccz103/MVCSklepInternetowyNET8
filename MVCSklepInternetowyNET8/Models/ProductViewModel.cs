@@ -18,10 +18,13 @@ public class ProductViewModel
 
     public int CategoryId { get; set; }
 
-    // Property to display the current image from the database
+    // Właściwość do wyświetlania obecnego dużego obrazu z bazy danych
     public byte[]? LargeImage { get; set; }
 
-    // Property for the uploaded file
+    // Właściwość dla przesyłanego pliku dużego obrazu
     [Display(Name = "New Image (optional)")]
     public IFormFile? LargeImageFile { get; set; }
+
+    // Właściwość do wyświetlania miniaturki z bazy danych
+    public byte[]? Thumbnail { get; set; }
 }
