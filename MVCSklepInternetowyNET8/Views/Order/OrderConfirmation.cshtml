@@ -6,7 +6,7 @@
 
 <h4>Zamówienie #@Model.OrderId</h4>
 <p>Data: @Model.OrderDate</p>
-<p>Łączna cena: @Model.TotalPrice.ToString("C")</p>
+<p>Łączna cena: @(Model.TotalPrice.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</p>
 
 <h3>Produkty</h3>
 <table class="table">
@@ -24,8 +24,8 @@
             <tr>
                 <td>@item.Product.Name</td>
                 <td>@item.Quantity</td>
-                <td>@item.Price.ToString("C")</td>
-                <td>@(item.Price * item.Quantity).ToString("C")</td>
+                <td>@(item.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</td>
+                <td>@((item.Price * item.Quantity).ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</td>
             </tr>
         }
     </tbody>

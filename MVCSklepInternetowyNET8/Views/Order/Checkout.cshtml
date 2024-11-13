@@ -19,21 +19,18 @@
                 <tr>
                     <td>@item.ProductName</td>
                     <td>@item.Quantity</td>
-                    <td>@item.Price.ToString("C")</td>
-                    <td>@(item.Price * item.Quantity).ToString("C")</td>
+                    <td>@(item.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</td>
+                    <td>@((item.Price * item.Quantity).ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</td>
                 </tr>
             }
         </tbody>
     </table>
 
-    <h3>Łączna cena: @Model.GetTotalPrice().ToString("C")</h3>
+    <h3>Łączna cena: @(Model.GetTotalPrice().ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</h3>
 
     <form asp-action="CheckoutPost" method="post">
         <button type="submit" class="btn btn-primary">Złóż zamówienie</button>
     </form>
-
-
-
 }
 else
 {
