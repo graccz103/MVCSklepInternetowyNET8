@@ -1,5 +1,6 @@
 ﻿public class CartItem
 {
+    public int CartItemId { get; set; } // Klucz główny dla CartItem
     public int ProductId { get; set; } // Identyfikator produktu
     public string? ProductName { get; set; } // Nazwa produktu
     public decimal Price { get; set; } // Cena produktu

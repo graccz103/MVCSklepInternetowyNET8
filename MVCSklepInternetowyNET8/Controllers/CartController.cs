@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MVCSklepInternetowyNET8.Models;
-using Newtonsoft.Json;
 using System.Threading.Tasks;
 
 public class CartController : Controller
@@ -18,13 +17,29 @@ public class CartController : Controller
 
     private Cart GetCart()
     {
-        var cart = HttpContext.Session.GetString("Cart");
-        return cart == null ? new Cart() : JsonConvert.DeserializeObject<Cart>(cart);
+        var userId = _userManager.GetUserId(User);
+
+        // Jeśli użytkownik nie jest zalogowany, zwracamy nowy, pusty koszyk (np. dla sesji niezalogowanego użytkownika)
+        if (string.IsNullOrEmpty(userId))
+        {
+            return new Cart();
+        }
+
+        // Pobieramy koszyk z bazy danych dla zalogowanego użytkownika lub tworzymy nowy, jeśli jeszcze nie istnieje
+        var cart = _context.Carts.Include(c => c.Items).FirstOrDefault(c => c.UserId == userId);
+        if (cart == null)
+        {
+            cart = new Cart { UserId = userId };
+            _context.Carts.Add(cart);
+            _context.SaveChanges();
+        }
+
+        return cart;
     }
 
     private void SaveCart(Cart cart)
     {
-        HttpContext.Session.SetString("Cart", JsonConvert.SerializeObject(cart));
+        _context.SaveChanges(); // Zapisujemy zmiany w bazie danych
     }
 
     // GET: Cart
@@ -49,7 +64,6 @@ public class CartController : Controller
 
         return View(order);
     }
-
 
     // POST: Cart/Add
     [HttpPost]
@@ -87,8 +101,6 @@ public class CartController : Controller
         return RedirectToAction("Index", "Cart");
     }
 
-
-
     // POST: Cart/Remove
     public IActionResult RemoveFromCart(int productId)
     {
@@ -103,7 +115,8 @@ public class CartController : Controller
     // POST: Cart/Clear
     public IActionResult ClearCart()
     {
-        var cart = new Cart();
+        var cart = GetCart();
+        cart.Items.Clear(); // Czyścimy elementy z koszyka, ale zachowujemy powiązanie z użytkownikiem
         SaveCart(cart);
 
         TempData["SuccessMessage"] = "Koszyk został wyczyszczony.";
@@ -114,28 +127,18 @@ public class CartController : Controller
     [HttpPost]
     public async Task<IActionResult> Checkout()
     {
-        // Logowanie w celu weryfikacji
-        Console.WriteLine("Rozpoczęto proces Checkout");
-
-        // Pobranie użytkownika bez sprawdzania danych klienta
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
-            Console.WriteLine("Użytkownik niezalogowany - przekierowanie do logowania.");
             return RedirectToAction("Login", "Account");
         }
 
-        Console.WriteLine($"Użytkownik: {user.Email}");
-
-        // Pobranie koszyka i sprawdzenie, czy są w nim produkty
         var cart = GetCart();
         if (!cart.Items.Any())
         {
             TempData["ErrorMessage"] = "Twój koszyk jest pusty.";
             return RedirectToAction("Index");
         }
-
-        Console.WriteLine("Koszyk zawiera produkty, przechodzimy do tworzenia zamówienia");
 
         // Tworzenie zamówienia
         var order = new Order
@@ -152,8 +155,6 @@ public class CartController : Controller
 
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
-
-        Console.WriteLine("Zamówienie zostało pomyślnie złożone");
 
         ClearCart(); // Wyczyść koszyk po złożeniu zamówienia
         TempData["SuccessMessage"] = "Twoje zamówienie zostało złożone!";
@@ -179,5 +180,4 @@ public class CartController : Controller
 
         return RedirectToAction("Index");
     }
-
 }

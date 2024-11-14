@@ -10,6 +10,8 @@ public class OnlineShopContext : IdentityDbContext<ApplicationUser>
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<Cart> Carts { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,8 +33,13 @@ public class OnlineShopContext : IdentityDbContext<ApplicationUser>
             .Property(p => p.Price)
             .HasColumnType("decimal(18,2)");
 
-        // Konfiguracja relacji dla kategorii
-        modelBuilder.Entity<Category>()
+        // Ustawienie typu kolumny decimal dla właściwości Price w CartItem
+        modelBuilder.Entity<CartItem>()
+            .Property(c => c.Price)
+            .HasColumnType("decimal(18,2)");
+
+    // Konfiguracja relacji dla kategorii
+    modelBuilder.Entity<Category>()
             .HasOne(c => c.ParentCategory)
             .WithMany(c => c.Subcategories)
             .HasForeignKey(c => c.ParentCategoryId)
