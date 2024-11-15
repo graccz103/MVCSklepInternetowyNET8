@@ -5,6 +5,7 @@
 @if (!Model.Items.Any())
 {
     <p>Twój koszyk jest pusty.</p>
+
 }
 else
 {
@@ -45,4 +46,5 @@ else
     <h3>Łączna cena: @($"{Model.GetTotalPrice():C}")</h3>
     <a href="@Url.Action("ClearCart", "Cart")" class="btn btn-warning">Wyczyść koszyk</a>
     <a href="@Url.Action("Checkout", "Order")" class="btn btn-primary">Przejdź do zamówienia</a>
+
 }

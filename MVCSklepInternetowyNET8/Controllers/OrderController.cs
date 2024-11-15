@@ -38,7 +38,8 @@ public class OrderController : Controller
             return RedirectToAction("EditCustomerDetails", "Account");
         }
 
-        var cart = _cartService.GetCart();
+        // Pobierz koszyk dla zalogowanego użytkownika
+        var cart = await _cartService.GetCartAsync();
 
         if (!cart.Items.Any())
         {
@@ -49,7 +50,6 @@ public class OrderController : Controller
         ViewBag.CustomerDetails = user.Customer;
         return View(cart);
     }
-
 
     // POST: Order/Checkout
     [HttpPost]
@@ -73,7 +73,8 @@ public class OrderController : Controller
             return RedirectToAction("EditCustomerDetails", "Account");
         }
 
-        var cart = _cartService.GetCart();
+        // Pobierz koszyk dla zalogowanego użytkownika
+        var cart = await _cartService.GetCartAsync();
 
         if (!cart.Items.Any())
         {
@@ -108,16 +109,32 @@ public class OrderController : Controller
 
         await _context.SaveChangesAsync();
 
-        _cartService.ClearCart();
+        // Wyczyść koszyk użytkownika po złożeniu zamówienia
+        await _cartService.ClearCartAsync(user.Id);
         TempData["SuccessMessage"] = "Twoje zamówienie zostało złożone!";
         return RedirectToAction("OrderConfirmation", new { orderId = order.OrderId });
     }
 
+    // GET: Order/OrderHistory
+    [HttpGet]
+    public async Task<IActionResult> OrderHistory()
+    {
+        var userId = _userManager.GetUserId(User);
 
+        if (string.IsNullOrEmpty(userId))
+        {
+            TempData["ErrorMessage"] = "Proszę się zalogować, aby zobaczyć historię zamówień.";
+            return RedirectToAction("Login", "Account");
+        }
 
+        var orders = await _context.Orders
+            .Where(o => o.UserId == userId)
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .ToListAsync();
 
-
-
+        return View(orders);
+    }
 
     // GET: Order/OrderConfirmation
     [HttpGet]
