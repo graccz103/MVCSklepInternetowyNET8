@@ -23,9 +23,20 @@ namespace MVCSklepInternetowyNET8.Controllers
 
         // GET: Product/ProductList (dla zywklych uzytkownikow na zakupy)
         [AllowAnonymous]
-        public async Task<IActionResult> ProductList()
+        public async Task<IActionResult> ProductList(string searchQuery = null)
         {
-            var products = await _context.Products.Include(p => p.Category).ToListAsync();
+            var productsQuery = _context.Products.Include(p => p.Category).AsQueryable();
+
+            // Jeśli podano słowa kluczowe, filtrujemy produkty
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                productsQuery = productsQuery.Where(p =>
+                    p.Name.Contains(searchQuery) ||
+                    p.Description.Contains(searchQuery));
+            }
+
+            var products = await productsQuery.ToListAsync();
+            ViewBag.SearchQuery = searchQuery; // Przekazanie wartości wyszukiwania do widoku
             return View(products);
         }
         // GET: Product
@@ -65,8 +76,6 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
 
-
-    
         // POST: Product/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
