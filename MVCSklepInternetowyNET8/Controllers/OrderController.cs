@@ -152,4 +152,61 @@ public class OrderController : Controller
 
         return View(order);
     }
+
+
+    // POST: Order/RepeatOrder
+    [HttpPost]
+    public async Task<IActionResult> RepeatOrder(int orderId)
+    {
+        var userId = _userManager.GetUserId(User);
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            TempData["ErrorMessage"] = "Musisz być zalogowany, aby ponowić zamówienie.";
+            return RedirectToAction("Login", "Account");
+        }
+
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .FirstOrDefaultAsync(o => o.OrderId == orderId);
+
+        if (order == null)
+        {
+            TempData["ErrorMessage"] = "Nie znaleziono zamówienia.";
+            return RedirectToAction("OrderHistory");
+        }
+
+        var cart = await _cartService.GetCartAsync();
+
+        foreach (var item in order.OrderItems)
+        {
+            var existingCartItem = cart.Items.FirstOrDefault(ci => ci.ProductId == item.ProductId);
+
+            if (existingCartItem == null)
+            {
+                cart.Items.Add(new CartItem
+                {
+                    ProductId = item.ProductId,
+                    ProductName = item.Product.Name,
+                    Price = item.Price,
+                    Quantity = item.Quantity,
+                    Thumbnail = item.Product.Thumbnail,
+                    StockQuantity = item.Product.StockQuantity
+                });
+            }
+            else
+            {
+                existingCartItem.Quantity += item.Quantity;
+            }
+        }
+
+        await _cartService.SaveCartAsync(cart);
+
+        TempData["SuccessMessage"] = "Produkty z zamówienia zostały dodane do koszyka.";
+        return RedirectToAction("Index", "Cart");
+    }
+
 }
+
+

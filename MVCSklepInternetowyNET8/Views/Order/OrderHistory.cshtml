@@ -4,38 +4,42 @@
 
 @if (!Model.Any())
 {
-        <p>Nie złożono jeszcze żadnych zamówień.</p>
+    <p>Nie złożono jeszcze żadnych zamówień.</p>
 }
 else
 {
     @foreach (var order in Model)
     {
-                <h4>Zamówienie #@order.OrderId</h4>
-                <p>Data zamówienia: @order.OrderDate</p>
-                <p>Łączna cena: @(order.TotalPrice.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</p>
+        <h4>Zamówienie #@order.OrderId</h4>
+        <p>Data zamówienia: @order.OrderDate</p>
+        <p>Łączna cena: @(order.TotalPrice.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</p>
 
-                <h5>Produkty</h5>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Nazwa produktu</th>
-                            <th>Ilość</th>
-                            <th>Cena jednostkowa</th>
-                            <th>Cena razem</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+        <h5>Produkty</h5>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nazwa produktu</th>
+                    <th>Ilość</th>
+                    <th>Cena jednostkowa</th>
+                    <th>Cena razem</th>
+                </tr>
+            </thead>
+            <tbody>
                 @foreach (var item in order.OrderItems)
                 {
-                                <tr>
-                                    <td>@item.Product.Name</td>
-                                    <td>@item.Quantity</td>
-                                    <td>@(item.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</td>
-                                    <td>@((item.Price * item.Quantity).ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</td>
-                                </tr>
+                    <tr>
+                        <td>@item.Product.Name</td>
+                        <td>@item.Quantity</td>
+                        <td>@(item.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</td>
+                        <td>@((item.Price * item.Quantity).ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US")))</td>
+                    </tr>
                 }
-                    </tbody>
-                </table>
-                <hr />
+            </tbody>
+        </table>
+        <form asp-action="RepeatOrder" asp-controller="Order" method="post">
+            <input type="hidden" name="orderId" value="@order.OrderId" />
+            <button class="btn btn-primary">Ponów zamówienie</button>
+        </form>
+        <hr />
     }
 }
