@@ -1,10 +1,10 @@
 ﻿public class CartItem
 {
-    public int CartItemId { get; set; } // Klucz główny dla CartItem
-    public int ProductId { get; set; } // Identyfikator produktu
-    public string? ProductName { get; set; } // Nazwa produktu
-    public decimal Price { get; set; } // Cena produktu
-    public int Quantity { get; set; } // Ilość w koszyku
-    public byte[]? Thumbnail { get; set; } // Miniaturka produktu
-    public int StockQuantity { get; set; } // Dostępna ilość w magazynie
+    public int CartItemId { get; set; }
+    public int ProductId { get; set; }
+    public string? ProductName { get; set; }
+    public decimal Price { get; set; }
+    public int Quantity { get; set; } 
+    public byte[]? Thumbnail { get; set; }
+    public int StockQuantity { get; set; }
 }
