@@ -98,8 +98,9 @@ public class CartController : Controller
 
         SaveCart(cart);
         TempData["SuccessMessage"] = "Produkt został dodany do koszyka.";
-        return RedirectToAction("Index", "Cart");
+        return RedirectToAction("ProductList", "Product"); // Upewnij się, że przekierowanie jest poprawne
     }
+
 
     // POST: Cart/Remove
     public IActionResult RemoveFromCart(int productId)

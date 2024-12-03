@@ -2,6 +2,21 @@
 
 <h1>Lista Produktów</h1>
 
+<!-- Wyświetlanie komunikatów z TempData -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
 <!-- Formularz wyszukiwania -->
 <form asp-action="ProductList" method="get" class="mb-4">
     <div class="form-group">
