@@ -3,7 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 public class OnlineShopContext : IdentityDbContext<ApplicationUser>
 {
-    public OnlineShopContext(DbContextOptions<OnlineShopContext> options) : base(options) { }
+    public OnlineShopContext(DbContextOptions<OnlineShopContext> options) : base(options)
+    {
+        Products = Set<Product>();
+        Categories = Set<Category>();
+        Customers = Set<Customer>();
+        Orders = Set<Order>();
+        OrderItems = Set<OrderItem>();
+        Carts = Set<Cart>();
+    }
 
     public DbSet<Product> Products { get; set; }
     public DbSet<Category> Categories { get; set; }
@@ -11,7 +19,6 @@ public class OnlineShopContext : IdentityDbContext<ApplicationUser>
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Cart> Carts { get; set; }
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
