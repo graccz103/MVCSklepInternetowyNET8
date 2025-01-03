@@ -45,8 +45,13 @@ public class OnlineShopContext : IdentityDbContext<ApplicationUser>
             .Property(c => c.Price)
             .HasColumnType("decimal(18,2)");
 
-    // Konfiguracja relacji dla kategorii
-    modelBuilder.Entity<Category>()
+        // Ustawienie typu kolumny decimal dla właściwości OriginalPrice w Product
+        modelBuilder.Entity<Product>()
+            .Property(p => p.OriginalPrice)
+            .HasColumnType("decimal(18,2)");
+
+        // Konfiguracja relacji dla kategorii
+        modelBuilder.Entity<Category>()
             .HasOne(c => c.ParentCategory)
             .WithMany(c => c.Subcategories)
             .HasForeignKey(c => c.ParentCategoryId)

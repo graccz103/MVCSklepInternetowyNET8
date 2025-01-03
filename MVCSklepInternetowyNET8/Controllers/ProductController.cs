@@ -47,11 +47,21 @@ namespace MVCSklepInternetowyNET8.Controllers
                 productsQuery = productsQuery.Where(p => p.IsOnPromotion && (p.PromotionEndDate == null || p.PromotionEndDate > DateTime.Now));
             }
 
-            var products = await productsQuery.ToListAsync();
+            var products = await productsQuery
+                .OrderByDescending(p => p.CreatedDate)
+                .ToListAsync();
+
+            // Ustawienie właściwości IsNewest dla pierwszych 5 produktów
+            for (int i = 0; i < products.Count; i++)
+            {
+                products[i].IsNewest = i < 5;
+            }
+
             ViewBag.Filter = filter;
             ViewBag.SearchQuery = searchQuery;
             return View(products);
         }
+
 
         // GET: Product
         [Authorize(Roles = "Admin")]
@@ -108,6 +118,9 @@ namespace MVCSklepInternetowyNET8.Controllers
                     CreatedDate = DateTime.Now,
                     LargeImage = await ConvertToBytes(model.LargeImageFile),
                     Thumbnail = await GenerateThumbnail(model.LargeImageFile),
+                    IsOnPromotion = model.IsOnPromotion,
+                    PromotionEndDate = model.PromotionEndDate,
+                    OriginalPrice = model.IsOnPromotion ? model.Price : (decimal?)null // Jeśli promocja, ustaw starą cenę
                 };
 
                 _context.Add(product);
@@ -115,16 +128,12 @@ namespace MVCSklepInternetowyNET8.Controllers
                 TempData["SuccessMessage"] = "Produkt został pomyślnie dodany.";
                 return RedirectToAction(nameof(Index));
             }
-            else
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                ViewData["ModelErrors"] = errors;
-            }
 
             TempData["ErrorMessage"] = "Wystąpił błąd podczas dodawania produktu.";
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", model.CategoryId);
             return View(model);
         }
+
 
 
         // Konwersja pliku na tablicę bajtów
@@ -201,7 +210,6 @@ namespace MVCSklepInternetowyNET8.Controllers
             {
                 try
                 {
-                    // Znajdź istniejący produkt w bazie danych
                     var product = await _context.Products.FindAsync(id);
 
                     if (product == null)
@@ -212,13 +220,25 @@ namespace MVCSklepInternetowyNET8.Controllers
                     // Aktualizacja danych produktu
                     product.Name = model.Name;
                     product.Description = model.Description;
-                    product.Price = model.Price;
                     product.StockQuantity = model.StockQuantity;
                     product.CategoryId = model.CategoryId;
+
+                    if (model.IsOnPromotion)
+                    {
+                        if (!product.IsOnPromotion) // Jeśli promocja była wyłączona, zapisz starą cenę
+                        {
+                            product.OriginalPrice = product.Price;
+                        }
+                        product.Price = model.Price; // Ustaw nową promocyjną cenę
+                    }
+                    else
+                    {
+                        product.OriginalPrice = null; // Usuń starą cenę, jeśli promocja jest wyłączona
+                    }
+
                     product.IsOnPromotion = model.IsOnPromotion;
                     product.PromotionEndDate = model.PromotionEndDate;
 
-                    // Jeśli użytkownik załadował nowy obraz, zaktualizuj LargeImage i Thumbnail
                     if (model.LargeImageFile != null)
                     {
                         product.LargeImage = await ConvertToBytes(model.LargeImageFile);
@@ -239,6 +259,7 @@ namespace MVCSklepInternetowyNET8.Controllers
                         throw;
                     }
                 }
+
                 TempData["SuccessMessage"] = "Produkt został zaktualizowany.";
                 return RedirectToAction(nameof(Index));
             }
@@ -247,6 +268,7 @@ namespace MVCSklepInternetowyNET8.Controllers
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", model.CategoryId);
             return View(model);
         }
+
 
 
 

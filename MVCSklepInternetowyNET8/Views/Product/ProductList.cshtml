@@ -45,8 +45,7 @@
         @foreach (var product in Model)
         {
             <div class="card" style="width: 18rem; margin: 1rem; position: relative;">
-                <!-- Dodanie oznaczeń Nowość i Promocja -->
-                @if (DateTime.Now.Subtract(product.CreatedDate).TotalDays <= 30)
+                @if (product.IsNewest)
                 {
                     <img src="/images/nowosc.png" alt="Nowość"
                          style="position: absolute; top: 10px; left: 10px; width: 50px; height: 50px;" />
@@ -65,12 +64,27 @@
                          alt="@product.Name"
                          style="width: 100px; height: 100px; object-fit: cover; margin: auto;" />
                 }
+
                 <div class="card-body">
                     <h5 class="card-title">@product.Name</h5>
                     <p class="card-text">@product.Description</p>
-                    <p class="card-text"><strong>Cena: </strong>@product.Price.ToString("C")</p>
+
+                    <!-- Cena -->
+                    <p class="card-text">
+                        @if (product.IsOnPromotion && product.OriginalPrice.HasValue)
+                        {
+                            <span style="text-decoration: line-through; color: grey; margin-right: 10px;">
+                                @product.OriginalPrice.Value.ToString("C")
+                            </span>
+                        }
+                        <strong style="font-size: 1.2em; color: red;">
+                            @product.Price.ToString("C")
+                        </strong>
+                    </p>
+
                     <p class="card-text"><strong>Dostępne: </strong>@product.StockQuantity</p>
 
+                    <!-- Dodaj do koszyka -->
                     <form asp-controller="Cart" asp-action="AddToCart" method="post">
                         <input type="hidden" name="productId" value="@product.ProductId" />
                         <div class="form-group">

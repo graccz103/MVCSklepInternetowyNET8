@@ -16,6 +16,7 @@ public class Product
     public int StockQuantity { get; set; }
     public bool IsOnPromotion { get; set; }
     public DateTime? PromotionEndDate { get; set; }
+    public decimal? OriginalPrice { get; set; }
     public DateTime CreatedDate { get; set; }
 
     // Przechowywanie dużego obrazu w formie binarnej
@@ -27,4 +28,8 @@ public class Product
     [ForeignKey("Category")]
     public int CategoryId { get; set; }
     public Category Category { get; set; }
+
+    [NotMapped]
+    public bool IsNewest { get; set; }
+
 }
