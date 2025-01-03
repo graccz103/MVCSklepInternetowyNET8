@@ -24,11 +24,20 @@ namespace MVCSklepInternetowyNET8.Controllers
             _context = context;
         }
 
-        // GET: Product/ProductList (dla zywklych uzytkownikow na zakupy)
-        public async Task<IActionResult> ProductList(string filter = null, string searchQuery = null, int? categoryId = null, decimal? priceFrom = null, decimal? priceTo = null, int? minStockQuantity = null)
-
+        // GET: Product/ProductList (dla zwykłych użytkowników na zakupy)
+        public async Task<IActionResult> ProductList(
+            string filter = null,
+            string searchQuery = null,
+            int? categoryId = null,
+            decimal? priceFrom = null,
+            decimal? priceTo = null,
+            int? minStockQuantity = null,
+            int pageNumber = 1, // Domyślna strona
+            int pageSize = 8    // Domyślna liczba elementów na stronę
+        )
         {
             var productsQuery = _context.Products.Include(p => p.Category).AsQueryable();
+
             // Filtruj według zakresu cen
             if (priceFrom.HasValue)
             {
@@ -73,17 +82,42 @@ namespace MVCSklepInternetowyNET8.Controllers
                 productsQuery = productsQuery.Where(p => p.IsOnPromotion && (p.PromotionEndDate == null || p.PromotionEndDate > DateTime.Now));
             }
 
-            var products = await productsQuery.ToListAsync();
+            // Stronnicowanie
+            var totalItems = await productsQuery.CountAsync(); // Liczba wszystkich elementów
+            var products = await productsQuery
+                .Skip((pageNumber - 1) * pageSize) // Pomijamy elementy z poprzednich stron
+                .Take(pageSize)                   // Pobieramy elementy na aktualną stronę
+                .ToListAsync();
 
-            // Przygotowanie listy kategorii z podziałem na nadrzędne/podkategorie
+
+            // Pobranie 5 najnowszych produktów z bazy danych
+            var newestProductsIds = await _context.Products
+                .OrderByDescending(p => p.CreatedDate)
+                .Take(5)
+                .Select(p => p.ProductId)
+                .ToListAsync();
+
+            // Ustawienie właściwości IsNewest na podstawie globalnej listy najnowszych produktów
+            foreach (var product in products)
+            {
+                product.IsNewest = newestProductsIds.Contains(product.ProductId);
+            }
+
+
             var categories = await _context.Categories.Include(c => c.ParentCategory).ToListAsync();
+
+            // Dodanie danych do ViewBag
             ViewBag.Categories = categories;
+            ViewBag.CurrentPage = pageNumber;                       // Bieżąca strona
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize); // Liczba stron
+            ViewBag.PageSize = pageSize;                            // Rozmiar strony
             ViewBag.Filter = filter;
             ViewBag.SearchQuery = searchQuery;
             ViewBag.CategoryId = categoryId;
             ViewBag.PriceFrom = priceFrom;
             ViewBag.PriceTo = priceTo;
             ViewBag.MinStockQuantity = minStockQuantity;
+            ViewBag.PageSize = pageSize;
 
 
             return View(products);
@@ -134,7 +168,7 @@ namespace MVCSklepInternetowyNET8.Controllers
                 // Nagłówki tabeli
                 table.AddCell("Nazwa");
                 table.AddCell("Cena");
-                table.AddCell("Dostępna ilość");
+                table.AddCell("Dostepna ilosc");
 
                 // Dodaj produkty
                 foreach (var product in products)

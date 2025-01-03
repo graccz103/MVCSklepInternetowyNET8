@@ -26,6 +26,25 @@
     </div>
 </div>
 
+<h2>Ustawienia Stronnicowania</h2>
+
+<form asp-action="ProductList" asp-controller="Product" method="get">
+    <div class="form-group">
+        <label for="pageSize">Ilość produktów na stronę:</label>
+        <input type="number"
+               id="pageSize"
+               name="pageSize"
+               class="form-control"
+               min="4"
+               max="100"
+               value="@ViewBag.PageSize ?? 8" />
+        <small class="form-text text-muted">
+            Wprowadź liczbę produktów na stronę (minimum 4, maksimum 100).
+        </small>
+    </div>
+    <button type="submit" class="btn btn-primary">Zapisz</button>
+</form>
+
 <p>
     <a href="@Url.Action("EditCustomerDetails", "Account")" class="btn btn-primary">Edytuj Dane</a>
     <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Powrót do strony głównej</a>
