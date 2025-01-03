@@ -22,8 +22,7 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
         // GET: Product/ProductList (dla zywklych uzytkownikow na zakupy)
-        [AllowAnonymous]
-        public async Task<IActionResult> ProductList(string filter = null, string searchQuery = null)
+        public async Task<IActionResult> ProductList(string filter = null, string searchQuery = null, int? categoryId = null)
         {
             var productsQuery = _context.Products.Include(p => p.Category).AsQueryable();
 
@@ -33,6 +32,13 @@ namespace MVCSklepInternetowyNET8.Controllers
                 productsQuery = productsQuery.Where(p =>
                     p.Name.Contains(searchQuery) ||
                     p.Description.Contains(searchQuery));
+            }
+
+            // Filtruj według kategorii i jej podkategorii
+            if (categoryId.HasValue)
+            {
+                var subCategoryIds = await GetSubCategoryIds(categoryId.Value);
+                productsQuery = productsQuery.Where(p => subCategoryIds.Contains(p.CategoryId));
             }
 
             // Filtruj według nowości
@@ -47,20 +53,33 @@ namespace MVCSklepInternetowyNET8.Controllers
                 productsQuery = productsQuery.Where(p => p.IsOnPromotion && (p.PromotionEndDate == null || p.PromotionEndDate > DateTime.Now));
             }
 
-            var products = await productsQuery
-                .OrderByDescending(p => p.CreatedDate)
-                .ToListAsync();
+            var products = await productsQuery.ToListAsync();
 
-            // Ustawienie właściwości IsNewest dla pierwszych 5 produktów
-            for (int i = 0; i < products.Count; i++)
-            {
-                products[i].IsNewest = i < 5;
-            }
-
+            // Przygotowanie listy kategorii z podziałem na nadrzędne/podkategorie
+            var categories = await _context.Categories.Include(c => c.ParentCategory).ToListAsync();
+            ViewBag.Categories = categories;
             ViewBag.Filter = filter;
             ViewBag.SearchQuery = searchQuery;
+            ViewBag.CategoryId = categoryId;
+
             return View(products);
         }
+
+        // Metoda do pobierania ID kategorii i jej podkategorii
+        private async Task<List<int>> GetSubCategoryIds(int categoryId)
+        {
+            var categoryIds = new List<int> { categoryId };
+            var subCategories = await _context.Categories.Where(c => c.ParentCategoryId == categoryId).ToListAsync();
+
+            foreach (var subCategory in subCategories)
+            {
+                categoryIds.AddRange(await GetSubCategoryIds(subCategory.CategoryId));
+            }
+
+            return categoryIds;
+        }
+
+
 
 
         // GET: Product

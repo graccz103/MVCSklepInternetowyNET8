@@ -31,8 +31,30 @@
                placeholder="Wyszukaj produkty..."
                value="@ViewBag.SearchQuery" />
     </div>
-    <button type="submit" class="btn btn-primary">Szukaj</button>
+    <div class="form-group">
+        <label for="categoryId">Kategoria:</label>
+        <select name="categoryId" id="categoryId" class="form-control">
+            <option value="">-- Wszystkie --</option>
+            @foreach (var category in ViewBag.Categories)
+            {
+                bool isSelected = ViewBag.CategoryId == category.CategoryId;
+
+                <option value="@category.CategoryId" selected="@isSelected">
+                    @if (category.ParentCategory != null)
+                    {
+                        @($"{category.ParentCategory.Name} -> {category.Name}")
+                    }
+                    else
+                    {
+                        @category.Name
+                    }
+                </option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Filtruj</button>
 </form>
+
 
 <!-- Lista produktów -->
 <div class="row">
