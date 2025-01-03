@@ -144,3 +144,17 @@
         }
     }
 </div>
+
+<!-- Paginacja -->
+<div class="pagination">
+    @if (ViewBag.TotalPages > 1)
+    {
+        for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            <a href="@Url.Action("ProductList", new { pageNumber = i, pageSize = ViewBag.PageSize })"
+               class="btn @(ViewBag.CurrentPage == i ? "btn-primary" : "btn-secondary")">
+                @i
+            </a>
+        }
+    }
+</div>
