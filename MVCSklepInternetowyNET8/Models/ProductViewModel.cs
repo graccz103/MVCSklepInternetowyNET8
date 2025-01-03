@@ -22,5 +22,13 @@ public class ProductViewModel
 
     [Display(Name = "New Image (optional)")]
     public IFormFile? LargeImageFile { get; set; }
+
     public byte[]? Thumbnail { get; set; }
+    public DateTime CreatedDate { get; set; }
+
+    // Pola dotyczące promocji
+    public bool IsOnPromotion { get; set; }
+
+    [Display(Name = "Promotion End Date")]
+    public DateTime? PromotionEndDate { get; set; }
 }

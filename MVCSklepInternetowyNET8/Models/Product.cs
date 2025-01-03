@@ -14,6 +14,9 @@ public class Product
     public decimal Price { get; set; }
 
     public int StockQuantity { get; set; }
+    public bool IsOnPromotion { get; set; }
+    public DateTime? PromotionEndDate { get; set; }
+    public DateTime CreatedDate { get; set; }
 
     // Przechowywanie dużego obrazu w formie binarnej
     public byte[] LargeImage { get; set; }
