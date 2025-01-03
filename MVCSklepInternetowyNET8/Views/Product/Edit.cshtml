@@ -13,26 +13,31 @@
         <form asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="ProductId" />
+
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Description" class="control-label"></label>
                 <textarea asp-for="Description" class="form-control"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Price" class="control-label"></label>
                 <input asp-for="Price" class="form-control" />
                 <span asp-validation-for="Price" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="StockQuantity" class="control-label"></label>
                 <input asp-for="StockQuantity" class="form-control" />
                 <span asp-validation-for="StockQuantity" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label>Obecny obraz</label>
                 @if (Model.LargeImage != null)
@@ -40,16 +45,32 @@
                     <img src="data:image/jpeg;base64,@Convert.ToBase64String(Model.LargeImage)" class="img-fluid mb-2" alt="Obraz produktu" />
                 }
             </div>
+
             <div class="form-group">
                 <label>Nowy obraz (opcjonalnie)</label>
                 <input asp-for="LargeImageFile" type="file" class="form-control" />
                 <span asp-validation-for="LargeImageFile" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="CategoryId" class="control-label"></label>
                 <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
+
+            <!-- Dodanie sekcji promocji -->
+            <div class="form-group">
+                <label asp-for="IsOnPromotion" class="control-label"></label>
+                <input asp-for="IsOnPromotion" type="checkbox" class="form-check-input" />
+                <span asp-validation-for="IsOnPromotion" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="PromotionEndDate" class="control-label"></label>
+                <input asp-for="PromotionEndDate" type="datetime-local" class="form-control" />
+                <span asp-validation-for="PromotionEndDate" class="text-danger"></span>
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
@@ -62,7 +83,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @Html.Partial("_ValidationScriptsPartial")
 }

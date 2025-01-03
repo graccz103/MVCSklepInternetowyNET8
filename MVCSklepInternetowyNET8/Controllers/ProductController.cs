@@ -23,11 +23,11 @@ namespace MVCSklepInternetowyNET8.Controllers
 
         // GET: Product/ProductList (dla zywklych uzytkownikow na zakupy)
         [AllowAnonymous]
-        public async Task<IActionResult> ProductList(string searchQuery = null)
+        public async Task<IActionResult> ProductList(string filter = null, string searchQuery = null)
         {
             var productsQuery = _context.Products.Include(p => p.Category).AsQueryable();
 
-            // Jeśli podano słowa kluczowe, filtrujemy produkty
+            // Filtruj produkty według słów kluczowych
             if (!string.IsNullOrWhiteSpace(searchQuery))
             {
                 productsQuery = productsQuery.Where(p =>
@@ -35,10 +35,24 @@ namespace MVCSklepInternetowyNET8.Controllers
                     p.Description.Contains(searchQuery));
             }
 
+            // Filtruj według nowości
+            if (filter == "New")
+            {
+                productsQuery = productsQuery.OrderByDescending(p => p.CreatedDate).Take(5);
+            }
+
+            // Filtruj według promocji
+            if (filter == "Promotion")
+            {
+                productsQuery = productsQuery.Where(p => p.IsOnPromotion && (p.PromotionEndDate == null || p.PromotionEndDate > DateTime.Now));
+            }
+
             var products = await productsQuery.ToListAsync();
-            ViewBag.SearchQuery = searchQuery; // Przekazanie wartości wyszukiwania do widoku
+            ViewBag.Filter = filter;
+            ViewBag.SearchQuery = searchQuery;
             return View(products);
         }
+
         // GET: Product
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
@@ -91,8 +105,9 @@ namespace MVCSklepInternetowyNET8.Controllers
                     Price = model.Price,
                     StockQuantity = model.StockQuantity,
                     CategoryId = model.CategoryId,
+                    CreatedDate = DateTime.Now,
                     LargeImage = await ConvertToBytes(model.LargeImageFile),
-                    Thumbnail = await GenerateThumbnail(model.LargeImageFile)
+                    Thumbnail = await GenerateThumbnail(model.LargeImageFile),
                 };
 
                 _context.Add(product);
@@ -162,8 +177,10 @@ namespace MVCSklepInternetowyNET8.Controllers
                 StockQuantity = product.StockQuantity,
                 CategoryId = product.CategoryId,
                 LargeImage = product.LargeImage,
-                Thumbnail = product.Thumbnail
+                Thumbnail = product.Thumbnail,
+                CreatedDate = product.CreatedDate 
             };
+
 
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", product.CategoryId);
             return View(productViewModel);
@@ -198,6 +215,8 @@ namespace MVCSklepInternetowyNET8.Controllers
                     product.Price = model.Price;
                     product.StockQuantity = model.StockQuantity;
                     product.CategoryId = model.CategoryId;
+                    product.IsOnPromotion = model.IsOnPromotion;
+                    product.PromotionEndDate = model.PromotionEndDate;
 
                     // Jeśli użytkownik załadował nowy obraz, zaktualizuj LargeImage i Thumbnail
                     if (model.LargeImageFile != null)
@@ -220,12 +239,16 @@ namespace MVCSklepInternetowyNET8.Controllers
                         throw;
                     }
                 }
+                TempData["SuccessMessage"] = "Produkt został zaktualizowany.";
                 return RedirectToAction(nameof(Index));
             }
 
+            TempData["ErrorMessage"] = "Wystąpił błąd podczas aktualizacji produktu.";
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", model.CategoryId);
             return View(model);
         }
+
+
 
 
         // GET: Product/Delete/5
