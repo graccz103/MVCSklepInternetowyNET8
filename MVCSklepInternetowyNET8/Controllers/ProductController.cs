@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 using MVCSklepInternetowyNET8.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using System.Xml.Linq;
 
 namespace MVCSklepInternetowyNET8.Controllers
 {
@@ -22,9 +25,26 @@ namespace MVCSklepInternetowyNET8.Controllers
         }
 
         // GET: Product/ProductList (dla zywklych uzytkownikow na zakupy)
-        public async Task<IActionResult> ProductList(string filter = null, string searchQuery = null, int? categoryId = null)
+        public async Task<IActionResult> ProductList(string filter = null, string searchQuery = null, int? categoryId = null, decimal? priceFrom = null, decimal? priceTo = null, int? minStockQuantity = null)
+
         {
             var productsQuery = _context.Products.Include(p => p.Category).AsQueryable();
+            // Filtruj według zakresu cen
+            if (priceFrom.HasValue)
+            {
+                productsQuery = productsQuery.Where(p => p.Price >= priceFrom.Value);
+            }
+
+            if (priceTo.HasValue)
+            {
+                productsQuery = productsQuery.Where(p => p.Price <= priceTo.Value);
+            }
+
+            // Filtruj według minimalnej dostępnej ilości produktów
+            if (minStockQuantity.HasValue)
+            {
+                productsQuery = productsQuery.Where(p => p.StockQuantity >= minStockQuantity.Value);
+            }
 
             // Filtruj produkty według słów kluczowych
             if (!string.IsNullOrWhiteSpace(searchQuery))
@@ -61,6 +81,10 @@ namespace MVCSklepInternetowyNET8.Controllers
             ViewBag.Filter = filter;
             ViewBag.SearchQuery = searchQuery;
             ViewBag.CategoryId = categoryId;
+            ViewBag.PriceFrom = priceFrom;
+            ViewBag.PriceTo = priceTo;
+            ViewBag.MinStockQuantity = minStockQuantity;
+
 
             return View(products);
         }
@@ -79,7 +103,54 @@ namespace MVCSklepInternetowyNET8.Controllers
             return categoryIds;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GeneratePriceListPdf(int categoryId)
+        {
+            // Pobierz produkty z wybranej kategorii i jej podkategorii
+            var subCategoryIds = await GetSubCategoryIds(categoryId);
+            var products = await _context.Products
+                .Include(p => p.Category)
+                .Where(p => subCategoryIds.Contains(p.CategoryId))
+                .ToListAsync();
 
+            // Utwórz dokument PDF
+            using (var memoryStream = new MemoryStream())
+            {
+                var document = new iTextSharp.text.Document(); // Użycie jawne klasy z iTextSharp
+                PdfWriter.GetInstance(document, memoryStream);
+                document.Open();
+
+                // Dodaj tytuł
+                var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16);
+                var title = new Paragraph($"Cennik produktów dla kategorii: {products.FirstOrDefault()?.Category.Name}", titleFont);
+                title.Alignment = Element.ALIGN_CENTER;
+                title.SpacingAfter = 20;
+                document.Add(title);
+
+                // Dodaj tabelę
+                var table = new PdfPTable(3); // 3 kolumny: Nazwa, Cena, Dostępna ilość
+                table.WidthPercentage = 100;
+
+                // Nagłówki tabeli
+                table.AddCell("Nazwa");
+                table.AddCell("Cena");
+                table.AddCell("Dostępna ilość");
+
+                // Dodaj produkty
+                foreach (var product in products)
+                {
+                    table.AddCell(product.Name);
+                    table.AddCell(product.Price.ToString("C"));
+                    table.AddCell(product.StockQuantity.ToString());
+                }
+
+                document.Add(table);
+                document.Close();
+
+                // Zwróć plik PDF
+                return File(memoryStream.ToArray(), "application/pdf", $"Cennik_{categoryId}.pdf");
+            }
+        }
 
 
         // GET: Product
@@ -168,7 +239,7 @@ namespace MVCSklepInternetowyNET8.Controllers
         // Generowanie miniaturki
         private async Task<byte[]> GenerateThumbnail(IFormFile file)
         {
-            using var image = Image.Load(file.OpenReadStream()); // Zmieniono na OpenReadStream
+            using var image = SixLabors.ImageSharp.Image.Load(file.OpenReadStream()); // Zmieniono na OpenReadStream
             image.Mutate(x => x.Resize(new ResizeOptions
             {
                 Size = new Size(100, 100),

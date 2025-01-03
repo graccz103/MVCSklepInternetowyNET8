@@ -52,9 +52,33 @@
             }
         </select>
     </div>
+    <div class="form-group">
+        <label for="priceFrom">Cena od:</label>
+        <input type="number" name="priceFrom" id="priceFrom" class="form-control" step="0.01"
+               value="@ViewBag.PriceFrom" placeholder="Minimalna cena" />
+    </div>
+    <div class="form-group">
+        <label for="priceTo">Cena do:</label>
+        <input type="number" name="priceTo" id="priceTo" class="form-control" step="0.01"
+               value="@ViewBag.PriceTo" placeholder="Maksymalna cena" />
+    </div>
+    <div class="form-group">
+        <label for="minStockQuantity">Minimalna ilość:</label>
+        <input type="number" name="minStockQuantity" id="minStockQuantity" class="form-control"
+               value="@ViewBag.MinStockQuantity" placeholder="Minimalna dostępna ilość" />
+    </div>
+
     <button type="submit" class="btn btn-primary">Filtruj</button>
 </form>
 
+<!-- Przycisk generowania PDF -->
+@if (ViewBag.CategoryId != null)
+{
+    <form asp-action="GeneratePriceListPdf" method="get">
+        <input type="hidden" name="categoryId" value="@ViewBag.CategoryId" />
+        <button type="submit" class="btn btn-warning">Generuj cennik PDF</button>
+    </form>
+}
 
 <!-- Lista produktów -->
 <div class="row">
