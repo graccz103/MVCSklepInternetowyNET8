@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using MVCSklepInternetowyNET8.Models;
 
 public class OnlineShopContext : IdentityDbContext<ApplicationUser>
 {
@@ -19,6 +20,8 @@ public class OnlineShopContext : IdentityDbContext<ApplicationUser>
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Cart> Carts { get; set; }
+    public DbSet<Visit> Visits { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
