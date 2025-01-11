@@ -56,8 +56,23 @@ public class AccountController : Controller
         {
             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
             if (result.Succeeded)
+            {
+                // Rejestruj wizytę
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null)
+                {
+                    var visit = new Visit
+                    {
+                        VisitDate = DateTime.Now,
+                        UserId = user.Id
+                    };
+                    _context.Visits.Add(visit);
+                    await _context.SaveChangesAsync();
+                }
+
                 return RedirectToAction("Index", "Home");
-            ModelState.AddModelError("", "Invalid login attempt.");
+            }
+            ModelState.AddModelError("", "Nieprawidłowe dane logowania.");
         }
         return View(model);
     }

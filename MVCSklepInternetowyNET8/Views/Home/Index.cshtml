@@ -1,8 +1,36 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Buły i Bagiety - Piekarnia";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="jumbotron text-center bg-light p-5">
+    <h1 class="display-4">Witamy w "Buły i Bagiety"!</h1>
+    <p class="lead">Najlepsze pieczywo w Twoim mieście! Od świeżych bagietek po chrupiące bułeczki.</p>
+    <hr class="my-4">
+    <p>Zapraszamy do naszego sklepu, aby znaleźć coś dla siebie.</p>
+    <a class="btn btn-primary btn-lg" asp-controller="Product" asp-action="ProductList">Zobacz ofertę</a>
+</div>
+
+<div class="container mt-5">
+    <h2>Dlaczego warto nas wybrać?</h2>
+    <div class="row">
+        <div class="col-md-4 text-center">
+            <img src="/images/fresh-bread.jpg" class="img-fluid rounded-circle mb-3" alt="Świeże pieczywo">
+            <h4>Świeżość</h4>
+            <p>Codziennie pieczemy nasze produkty, aby zawsze były świeże i smaczne.</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <img src="/images/ingredients.jpg" class="img-fluid rounded-circle mb-3" alt="Naturalne składniki">
+            <h4>Naturalne składniki</h4>
+            <p>Używamy wyłącznie najlepszych składników bez sztucznych dodatków.</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <img src="/images/tradition.jpg" class="img-fluid rounded-circle mb-3" alt="Tradycja">
+            <h4>Tradycja</h4>
+            <p>Łączymy tradycyjne metody pieczenia z nowoczesnym podejściem.</p>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info text-center mt-3">
+    <strong>Liczba odwiedzin: @ViewBag.VisitCount</strong>
 </div>
