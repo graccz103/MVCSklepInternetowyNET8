@@ -70,6 +70,43 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    // Lista użytkowników
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ListUsers()
+    {
+        var users = await _context.Users
+            .Include(u => u.Customer)
+            .ToListAsync();
+        return View(users);
+    }
+
+    // POST: Usuwanie użytkownika
+    [Authorize(Roles = "Admin")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteUser(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Nie znaleziono użytkownika.";
+            return RedirectToAction("ListUsers");
+        }
+
+        var result = await _userManager.DeleteAsync(user);
+        if (result.Succeeded)
+        {
+            TempData["SuccessMessage"] = "Użytkownik został pomyślnie usunięty.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Wystąpił błąd podczas usuwania użytkownika.";
+        }
+
+        return RedirectToAction("ListUsers");
+    }
+
+
     // GET: Account/CustomerDetails
     [Authorize]
     [HttpGet]

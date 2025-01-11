@@ -1,11 +1,33 @@
 ﻿@model IEnumerable<ApplicationUser>
 
-<h2>Lista zarejestrowanych użytkowników</h2>
-<table>
+<h1>Lista Użytkowników</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Email</th>
-            <th>Nazwa użytkownika</th>
+            <th>Imię</th>
+            <th>Nazwisko</th>
+            <th>Telefon</th>
+            <th>Adres</th>
+            <th>Miasto</th>
+            <th>Kod Pocztowy</th>
+            <th>Data Utworzenia</th>
+            <th>Akcje</th>
         </tr>
     </thead>
     <tbody>
@@ -13,7 +35,19 @@
         {
             <tr>
                 <td>@user.Email</td>
-                <td>@user.UserName</td>
+                <td>@user.Customer?.FirstName</td>
+                <td>@user.Customer?.LastName</td>
+                <td>@user.Customer?.PhoneNumber</td>
+                <td>@user.Customer?.Address</td>
+                <td>@user.Customer?.City</td>
+                <td>@user.Customer?.PostalCode</td>
+                <td>@user.Customer?.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>
+                    <form asp-action="DeleteUser" asp-controller="Account" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <button type="submit" class="btn btn-danger btn-sm">Usuń</button>
+                    </form>
+                </td>
             </tr>
         }
     </tbody>
