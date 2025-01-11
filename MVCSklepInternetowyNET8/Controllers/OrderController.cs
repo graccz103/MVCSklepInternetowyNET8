@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Linq;
 using MVCSklepInternetowyNET8.Models;
+using Microsoft.AspNetCore.Authorization;
 
 public class OrderController : Controller
 {
@@ -114,6 +115,63 @@ public class OrderController : Controller
         TempData["SuccessMessage"] = "Twoje zamówienie zostało złożone!";
         return RedirectToAction("OrderConfirmation", new { orderId = order.OrderId });
     }
+
+
+    // GET: Order/ManageOrders
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ManageOrders()
+    {
+        var orders = await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .Include(o => o.User) // Pobierz użytkowników dla zamówień
+            .ToListAsync();
+
+        // Ustaw domyślny status dla zamówień bez statusu
+        foreach (var order in orders.Where(o => string.IsNullOrEmpty(o.OrderStatus)))
+        {
+            order.OrderStatus = "Nowe";
+        }
+
+        var groupedOrders = new
+        {
+            NewOrders = orders.Where(o => o.OrderStatus == "Nowe").OrderByDescending(o => o.OrderDate),
+            InProgressOrders = orders.Where(o => o.OrderStatus == "W trakcie realizacji").OrderByDescending(o => o.OrderDate),
+            CompletedOrders = orders.Where(o => o.OrderStatus == "Zrealizowane").OrderByDescending(o => o.OrderDate),
+            CancelledOrders = orders.Where(o => o.OrderStatus == "Anulowane").OrderByDescending(o => o.OrderDate)
+        };
+
+        return View(groupedOrders);
+    }
+
+    // POST: Order/ChangeOrderStatus
+    [Authorize(Roles = "Admin")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangeOrderStatus(int orderId, string newStatus)
+    {
+        var order = await _context.Orders.FindAsync(orderId);
+
+        if (order == null)
+        {
+            TempData["ErrorMessage"] = "Nie znaleziono zamówienia.";
+            return RedirectToAction("ManageOrders");
+        }
+
+        if (!new[] { "Nowe", "W trakcie realizacji", "Zrealizowane", "Anulowane" }.Contains(newStatus))
+        {
+            TempData["ErrorMessage"] = "Nieprawidłowy stan zamówienia.";
+            return RedirectToAction("ManageOrders");
+        }
+
+        order.OrderStatus = newStatus;
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Stan zamówienia został zaktualizowany.";
+        return RedirectToAction("ManageOrders");
+    }
+
+
 
     // GET: Order/OrderHistory
     [HttpGet]

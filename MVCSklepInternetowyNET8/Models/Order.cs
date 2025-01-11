@@ -12,6 +12,9 @@ public class Order
     [Required]
     public decimal TotalPrice { get; set; }
 
+    [Required]
+    public string OrderStatus { get; set; } = "Nowe"; // Domyślny stan zamówienia
+
     public string UserId { get; set; }
     public ApplicationUser User { get; set; }
 

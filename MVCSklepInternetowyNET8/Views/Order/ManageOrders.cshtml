@@ -1,0 +1,105 @@
+﻿@model dynamic
+
+<h1>Zarządzanie Zamówieniami</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@foreach (var group in new[] {
+    new { Title = "Nowe Zamówienia", Orders = Model.NewOrders },
+    new { Title = "W trakcie realizacji", Orders = Model.InProgressOrders },
+    new { Title = "Zrealizowane Zamówienia", Orders = Model.CompletedOrders },
+    new { Title = "Anulowane Zamówienia", Orders = Model.CancelledOrders }
+})
+{
+    <h2>@group.Title</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID Zamówienia</th>
+                <th>Data Zamówienia</th>
+                <th>Użytkownik</th>
+                <th>Cena</th>
+                <th>Szczegóły Pozycji</th>
+                <th>Stan</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in group.Orders)
+            {
+                <tr>
+                    <td>@order.OrderId</td>
+                    <td>@order.OrderDate.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@order.User.Email</td>
+                    <td>@order.TotalPrice.ToString("C")</td>
+                    <td>
+                        <ul>
+                            @foreach (var item in order.OrderItems)
+                            {
+                                <li>
+                                    <strong>@item.Product.Name</strong> - Ilość: @item.Quantity, Cena: @item.Price.ToString("C")
+                                </li>
+                            }
+                        </ul>
+                    </td>
+                    <td>@order.OrderStatus</td>
+                    <td>
+                        <form asp-action="ChangeOrderStatus" asp-controller="Order" method="post" style="display:inline;">
+                            <input type="hidden" name="orderId" value="@order.OrderId" />
+                            <select name="newStatus" class="form-control" style="width:auto; display:inline;">
+                                @if (order.OrderStatus == "Nowe")
+                                {
+                                    <option value="Nowe" selected>Nowe</option>
+                                }
+                                else
+                                {
+                                    <option value="Nowe">Nowe</option>
+                                }
+
+                                @if (order.OrderStatus == "W trakcie realizacji")
+                                {
+                                    <option value="W trakcie realizacji" selected>W trakcie realizacji</option>
+                                }
+                                else
+                                {
+                                    <option value="W trakcie realizacji">W trakcie realizacji</option>
+                                }
+
+                                @if (order.OrderStatus == "Zrealizowane")
+                                {
+                                    <option value="Zrealizowane" selected>Zrealizowane</option>
+                                }
+                                else
+                                {
+                                    <option value="Zrealizowane">Zrealizowane</option>
+                                }
+
+                                @if (order.OrderStatus == "Anulowane")
+                                {
+                                    <option value="Anulowane" selected>Anulowane</option>
+                                }
+                                else
+                                {
+                                    <option value="Anulowane">Anulowane</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">Zmień</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
