@@ -437,5 +437,22 @@ namespace MVCSklepInternetowyNET8.Controllers
         {
             return _context.Products.Any(e => e.ProductId == id);
         }
+
+        // Wyświetlenie szczegółów produktu dla klienta
+        [AllowAnonymous]
+        public async Task<IActionResult> ClientDetails(int id)
+        {
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.ProductId == id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return View(product);
+        }
+
     }
 }
