@@ -90,7 +90,9 @@
     {
         @foreach (var product in Model)
         {
-            <div class="card" style="width: 18rem; margin: 1rem; position: relative;">
+            <div class="card"
+                 style="width: 18rem; margin: 1rem; position: relative; cursor: pointer;"
+                 onclick="window.location.href='@Url.Action("ClientDetails", "Product", new { id = product.ProductId })'">
                 @if (product.IsNewest)
                 {
                     <img src="/images/nowosc.png" alt="Nowość"
@@ -144,6 +146,7 @@
         }
     }
 </div>
+
 
 <!-- Paginacja -->
 <div class="pagination">
