@@ -124,7 +124,7 @@ public class OrderController : Controller
         var orders = await _context.Orders
             .Include(o => o.OrderItems)
             .ThenInclude(oi => oi.Product)
-            .Include(o => o.User) // Pobierz użytkowników dla zamówień
+            .Include(o => o.User) 
             .ToListAsync();
 
         // Ustaw domyślny status dla zamówień bez statusu

@@ -178,7 +178,7 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid)
         {
-            // Zbierz błędy walidacji i przekaż do widoku
+            // Zbiera błędy walidacji i przekazuje do widoku
             var errors = ModelState.Values
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
@@ -200,7 +200,7 @@ public class AccountController : Controller
         if (user.Customer == null)
         {
             user.Customer = customer;
-            user.Customer.UserId = user.Id; // Przypisanie UserId
+            user.Customer.UserId = user.Id; 
             _context.Customers.Add(customer);
         }
         else
@@ -212,7 +212,7 @@ public class AccountController : Controller
             user.Customer.Address = customer.Address;
             user.Customer.City = customer.City;
             user.Customer.PostalCode = customer.PostalCode;
-            user.Customer.UserId = user.Id; // Przypisanie UserId
+            user.Customer.UserId = user.Id;
             _context.Customers.Update(user.Customer);
         }
 

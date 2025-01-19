@@ -14,7 +14,7 @@ public class ProductViewModel
     [Range(0.01, 10000, ErrorMessage = "Price must be between 0.01 and 10000")]
     public decimal Price { get; set; }
 
-    public decimal? OriginalPrice { get; set; } // Dodano pole dla starej ceny
+    public decimal? OriginalPrice { get; set; }
 
     public int StockQuantity { get; set; }
 

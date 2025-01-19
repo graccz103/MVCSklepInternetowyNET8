@@ -1,9 +1,9 @@
 ﻿public class Cart
 {
-    public int CartId { get; set; } // Unikalny identyfikator koszyka, wymagany, jeśli zapisujesz koszyk w bazie danych
+    public int CartId { get; set; } // Unikalny identyfikator koszyka
     public string UserId { get; set; } // Identyfikator użytkownika, do którego należy koszyk
 
-    public List<CartItem> Items { get; set; } = new List<CartItem>(); // Lista produktów w koszyku
+    public List<CartItem> Items { get; set; } = new List<CartItem>(); // Lista produktów w nim
 
     public decimal GetTotalPrice()
     {
