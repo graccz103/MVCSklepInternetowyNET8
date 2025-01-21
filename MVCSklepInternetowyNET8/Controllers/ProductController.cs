@@ -344,20 +344,20 @@ namespace MVCSklepInternetowyNET8.Controllers
                     // Aktualizacja danych produktu
                     product.Name = model.Name;
                     product.Description = model.Description;
+                    product.Price = model.Price;
                     product.StockQuantity = model.StockQuantity;
                     product.CategoryId = model.CategoryId;
 
                     if (model.IsOnPromotion)
                     {
-                        if (!product.IsOnPromotion) // Jeśli promocja była wyłączona, zapisz starą cenę
+                        if (!product.IsOnPromotion)
                         {
                             product.OriginalPrice = product.Price;
                         }
-                        product.Price = model.Price; // Ustaw nową promocyjną cenę
                     }
                     else
                     {
-                        product.OriginalPrice = null; // Usuń starą cenę, jeśli promocja jest wyłączona
+                        product.OriginalPrice = null;
                     }
 
                     product.IsOnPromotion = model.IsOnPromotion;
@@ -392,6 +392,7 @@ namespace MVCSklepInternetowyNET8.Controllers
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "Name", model.CategoryId);
             return View(model);
         }
+
 
 
 
