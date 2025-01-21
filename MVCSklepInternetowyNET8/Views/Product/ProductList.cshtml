@@ -133,7 +133,7 @@
                     <p class="card-text"><strong>Dostępne: </strong>@product.StockQuantity</p>
 
                     <!-- Dodaj do koszyka -->
-                    <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                    <form asp-controller="Cart" asp-action="AddToCart" method="post" onclick="event.stopPropagation();">
                         <input type="hidden" name="productId" value="@product.ProductId" />
                         <div class="form-group">
                             <label for="quantity">Ilość:</label>
@@ -146,6 +146,7 @@
         }
     }
 </div>
+
 
 
 <!-- Paginacja -->
